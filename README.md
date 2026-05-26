@@ -184,7 +184,7 @@ See `classes/privacy/provider.php` for the full Privacy API declaration.
 
 ### Project structure
 
-See `DEVELOPERS_en.md` (English) or `DEVELOPERS_fr.md` (French) for the complete technical documentation (architecture, tables, classes, helpers, troubleshooting).
+See [DEVELOPERS_en.md](DEVELOPERS_en.md) (English) or [DEVELOPERS_fr.md](DEVELOPERS_fr.md) (French) for the complete technical documentation (architecture, tables, classes, helpers, troubleshooting).
 
 ### Running scheduled tasks manually
 
@@ -198,6 +198,14 @@ php admin/cli/scheduled_task.php --execute='\local_su_statboard_api\task\aggrega
 Please report bugs and feature requests at:
 
 https://github.com/dev-capsule/moodle-local_su_statboard_api/issues
+
+## Roadmap
+
+### Coming soon: companion mobile app
+
+A native mobile application is in the works to consume the Statboard API and display the metrics on the go: live online users, daily login peaks, hourly connection curves and quiz completions — directly from your phone.
+
+The plugin REST endpoint already exposes everything the app needs in a single call, so no further server-side change will be required when the mobile app is released.
 
 ## License
 
