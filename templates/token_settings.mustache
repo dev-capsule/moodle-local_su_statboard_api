@@ -1,0 +1,121 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_su_statboard_api/token_settings
+
+    Template for the token settings page.
+
+    Variables required for this template:
+    * sesskey - The session key
+    * token - The current token value
+    * token_no_expiration - Whether token expiration is disabled
+    * expiration_date - The formatted expiration date for the datepicker
+    * current_expiration_html - HTML for displaying current expiration status
+    * return_url - URL to return to settings page
+
+    Example context (json):
+    {
+        "sesskey": "abcd1234",
+        "token": "5a4bd92a30a1f8641ab3175879b4d373",
+        "token_no_expiration": true,
+        "expiration_date": "2025-01-01",
+        "current_expiration_html": "<div class='alert alert-info'>Token is configured to never expire</div>",
+        "return_url": "/admin/settings.php?section=local_su_statboard_api_settings"
+    }
+}}
+
+<div class="back-button">
+    <a href="{{return_url}}" class="btn btn-secondary mb-3">
+        <span aria-hidden="true">&laquo; </span>{{#str}} back_to_settings, local_su_statboard_api {{/str}}
+    </a>
+</div>
+
+{{#notification}}
+    {{> core/notification}}
+{{/notification}}
+
+<form method="post" action="" id="token_settings_form" class="mt-4">
+    <input type="hidden" name="sesskey" value="{{sesskey}}">
+
+    <h4 class="mt-3 mb-3">{{#str}} token_section, local_su_statboard_api {{/str}}</h4>
+
+    <div class="form-group row">
+        <label class="col-sm-3 col-form-label">{{#str}} current_token, local_su_statboard_api {{/str}}</label>
+        <div class="col-sm-9">
+            {{#token}}
+                <input type="text" id="api-token" value="{{token}}" class="form-control mb-2" readonly="readonly" style="font-family: monospace;">
+                <button type="button" id="copy-token-btn" class="btn btn-sm btn-secondary">
+                    {{#str}} copy_token, local_su_statboard_api {{/str}}
+                </button>
+                <span id="copy-message" style="display: none; margin-left: 10px; color: green;">
+                    {{#str}} token_copied, local_su_statboard_api {{/str}}
+                </span>
+            {{/token}}
+            {{^token}}
+                <div class="alert alert-warning">{{#str}} no_token, local_su_statboard_api {{/str}}</div>
+            {{/token}}
+        </div>
+    </div>
+
+    <div class="form-group row">
+        <div class="col-sm-9 offset-sm-3">
+            <input type="submit" name="regenerate_token" value="{{#str}} regenerate_token, local_su_statboard_api {{/str}}" class="btn btn-warning mb-3">
+        </div>
+    </div>
+
+    <h4 class="mt-4 mb-3">{{#str}} expiration_section, local_su_statboard_api {{/str}}</h4>
+
+    <div class="form-group row">
+        <label for="token_no_expiration" class="col-sm-3 col-form-label">{{#str}} no_expiration, local_su_statboard_api {{/str}}</label>
+        <div class="col-sm-9">
+            <div class="form-check">
+                <input type="checkbox" id="token_no_expiration" name="token_no_expiration" class="form-check-input" value="1" {{#token_no_expiration}}checked{{/token_no_expiration}}>
+                <label for="token_no_expiration" class="form-check-label">{{#str}} no_expiration_label, local_su_statboard_api {{/str}}</label>
+            </div>
+            <div class="text-muted small">{{#str}} no_expiration_desc, local_su_statboard_api {{/str}}</div>
+        </div>
+    </div>
+
+    {{#current_expiration_html}}
+        <div class="form-group row">
+            <label class="col-sm-3 col-form-label">{{#str}} current_expiration, local_su_statboard_api {{/str}}</label>
+            <div class="col-sm-9">
+                {{{current_expiration_html}}}
+            </div>
+        </div>
+    {{/current_expiration_html}}
+
+    <div class="form-group row" id="expiration_date_group" {{#token_no_expiration}}style="display:none;"{{/token_no_expiration}}>
+        <label for="expiration_date" class="col-sm-3 col-form-label">{{#str}} expiration_date, local_su_statboard_api {{/str}}</label>
+        <div class="col-sm-9">
+            <input type="date" id="expiration_date" name="expiration_date" class="form-control" value="{{expiration_date}}" min="{{min_date}}" style="width: 200px; display: inline-block;">
+            <div class="text-muted small">{{#str}} expiration_date_desc, local_su_statboard_api {{/str}}</div>
+        </div>
+    </div>
+
+    <hr class="my-4">
+
+    <div class="text-center mb-4">
+        <input type="submit" name="submit_settings" value="{{#str}} save_changes, local_su_statboard_api {{/str}}" class="btn btn-primary btn-lg">
+    </div>
+</form>
+
+{{#js}}
+    require(['local_su_statboard_api/token_manager'], function(TokenManager) {
+    TokenManager.init({});
+    });
+{{/js}}

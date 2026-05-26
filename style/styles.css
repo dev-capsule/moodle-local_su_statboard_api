@@ -1,0 +1,150 @@
+/*
+ * Styles pour le plugin local_su_statboard_api
+ * Chargé automatiquement par Moodle sur toutes les pages
+ */
+
+/* En-tête du plugin avec logo */
+.plugin-header {
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 1rem;
+    margin-bottom: 2rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Icône du plugin — sélecteur spécifique + !important pour battre la règle core .icon de Moodle. */
+.plugin-header img.plugin-icon,
+.plugin-header .plugin-icon {
+    width: 48px !important;
+    height: 48px !important;
+    max-width: 48px !important;
+    max-height: 48px !important;
+    margin-right: 1rem;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+    flex-shrink: 0;
+}
+
+/* Titre principal du plugin */
+.plugin-title {
+    color: #495057;
+    font-weight: 600;
+    margin: 0;
+    font-size: 1.75rem;
+    line-height: 1.2;
+}
+
+/* Sous-titre du plugin */
+.plugin-subtitle {
+    font-size: 0.9rem;
+    margin: 0;
+    color: #6c757d;
+}
+
+/* Zone des titres */
+.plugin-titles {
+    flex: 1;
+}
+
+/* Styles spécifiques pour les pages du plugin */
+.path-local-su_statboard_api .card {
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.path-local-su_statboard_api .btn-primary {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.path-local-su_statboard_api .btn-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+/* Token display styling */
+#api-token {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.9rem;
+    background-color: #f8f9fa;
+    border: 2px solid #dee2e6;
+    border-radius: 6px;
+    padding: 12px;
+}
+
+/* Copy button styling */
+#copy-token-btn {
+    transition: all 0.2s ease;
+}
+
+#copy-token-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Message de copie */
+#copy-message {
+    font-weight: 500;
+    animation: fadeInOut 2s ease-in-out;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translateX(-10px); }
+    20% { opacity: 1; transform: translateX(0); }
+    80% { opacity: 1; transform: translateX(0); }
+    100% { opacity: 0; transform: translateX(10px); }
+}
+
+/* Alertes personnalisées */
+.path-local-su_statboard_api .alert {
+    border-radius: 8px;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.path-local-su_statboard_api .alert-info {
+    background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+    color: #0c5460;
+}
+
+.path-local-su_statboard_api .alert-success {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    color: #155724;
+}
+
+.path-local-su_statboard_api .alert-danger {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    color: #721c24;
+}
+
+.path-local-su_statboard_api .alert-warning {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    color: #856404;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .plugin-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .plugin-header img.plugin-icon,
+    .plugin-header .plugin-icon {
+        width: 56px !important;
+        height: 56px !important;
+        max-width: 56px !important;
+        max-height: 56px !important;
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+
+    .plugin-title {
+        font-size: 1.3rem;
+    }
+}

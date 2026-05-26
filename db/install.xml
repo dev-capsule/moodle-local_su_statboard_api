@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="local/su_statboard_api/db" VERSION="20250409" COMMENT="XMLDB file for local_su_statboard_api"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd">
+    <TABLES>
+        <TABLE NAME="su_statboard_daily_stats" COMMENT="Daily aggregated login statistics for the SU Statboard API">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="Primary key"/>
+                <FIELD NAME="statsdate" TYPE="char" LENGTH="10" NOTNULL="true" COMMENT="Date in YYYY-MM-DD format"/>
+                <FIELD NAME="logins" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" COMMENT="Number of distinct users who logged in on this date"/>
+                <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" COMMENT="Timestamp when this record was created by the cron"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+            </KEYS>
+            <INDEXES>
+                <INDEX NAME="su_statboard_daily_stats_date_ix" UNIQUE="true" FIELDS="statsdate" COMMENT="Unique index on date to prevent duplicate entries"/>
+            </INDEXES>
+        </TABLE>
+        <TABLE NAME="su_statboard_hourly_stats" COMMENT="Hourly snapshot of connected users for the SU Statboard API">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="Primary key"/>
+                <FIELD NAME="statsdate" TYPE="char" LENGTH="10" NOTNULL="true" COMMENT="Date in YYYY-MM-DD format"/>
+                <FIELD NAME="hour" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" COMMENT="Hour of the day (0-23)"/>
+                <FIELD NAME="connections" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" COMMENT="Number of distinct users connected at this hour snapshot"/>
+                <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" COMMENT="Timestamp when this record was created by the cron"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+            </KEYS>
+            <INDEXES>
+                <INDEX NAME="su_statboard_hourly_stats_date_hour_ix" UNIQUE="true" FIELDS="statsdate, hour" COMMENT="Unique index on date+hour to prevent duplicate entries"/>
+            </INDEXES>
+        </TABLE>
+    </TABLES>
+</XMLDB>

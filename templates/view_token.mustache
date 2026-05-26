@@ -1,0 +1,61 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_su_statboard_api/view_token
+
+    Template for the view token page.
+
+    Variables required for this template:
+    * token - The token value
+    * expiration_html - HTML for displaying current expiration status
+
+    Example context (json):
+    {
+        "token": "5a4bd92a30a1f8641ab3175879b4d373",
+        "expiration_html": "<div class='alert alert-info'>Token is configured to never expire</div>"
+    }
+}}
+
+<h3>{{#str}} token_intro, local_su_statboard_api {{/str}}</h3>
+
+{{#token}}
+    <div class="card">
+        <div class="card-body">
+            <input type="text" id="api-token" value="{{token}}" class="form-control mb-3" readonly="readonly" style="font-family: monospace;">
+
+            <button type="button" id="copy-token-btn" class="btn btn-secondary">
+                {{#str}} copy_token, local_su_statboard_api {{/str}}
+            </button>
+
+            <span id="copy-message" style="display: none; margin-left: 10px; color: green;">
+                {{#str}} token_copied, local_su_statboard_api {{/str}}
+            </span>
+
+            {{{expiration_html}}}
+        </div>
+    </div>
+{{/token}}
+
+{{^token}}
+    <div class="alert alert-warning">{{#str}} no_token, local_su_statboard_api {{/str}}</div>
+{{/token}}
+
+{{#js}}
+    require(['local_su_statboard_api/token_manager'], function(TokenManager) {
+    TokenManager.init({});
+    });
+{{/js}}
