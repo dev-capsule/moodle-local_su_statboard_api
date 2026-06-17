@@ -128,7 +128,8 @@ function local_su_statboard_api_update_token($newtoken) {
 function local_su_statboard_api_regenerate_token() {
     global $DB, $CFG;
 
-    require_once($CFG->libdir . '/externallib.php');
+    // Token generation uses core_external\util (modern Moodle 4.x API)
+    // — no need to include lib/externallib.php (which would conflict with PHPUnit isolation).
 
     try {
         // 1. Get web service information.
@@ -178,8 +179,8 @@ function local_su_statboard_api_regenerate_token() {
 
         // 7. Generate a new token via Moodle standard API.
         $context = context_system::instance();
-        $newtoken = external_generate_token(
-            EXTERNAL_TOKEN_PERMANENT,
+        $newtoken = \core_external\util::generate_token(
+            \core_external\util::TOKEN_PERMANENT,
             $service->id,
             $tokenrecord->userid,
             $context,

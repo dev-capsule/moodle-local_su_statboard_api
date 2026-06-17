@@ -71,10 +71,7 @@ function xmldb_local_su_statboard_api_install() {
 
     mtrace("Database compatibility: OK ($dbtype $dbversion[version])");
 
-    require_once($CFG->libdir . '/externallib.php');
-    require_once($CFG->libdir . '/accesslib.php');
-    require_once($CFG->libdir . '/enrollib.php');
-    require_once($CFG->dirroot . '/local/su_statboard_api/locallib.php');
+    require_once($CFG->libdir . '/accesslib.php'); // For role_assign().
 
     try {
         // 1. Clean up existing installation.
@@ -178,9 +175,10 @@ function xmldb_local_su_statboard_api_install() {
         set_config('token_no_expiration', '1', 'local_su_statboard_api');
         mtrace('Settings: Token configured as permanent');
 
-        // 8. Generate token.
-        $token = external_generate_token(
-            EXTERNAL_TOKEN_PERMANENT,
+        // 8. Generate token (modern Moodle 4.x API — does not require including externallib.php,
+        // which would conflict with PHPUnit isolation requirements at install time).
+        $token = \core_external\util::generate_token(
+            \core_external\util::TOKEN_PERMANENT,
             $service->id,
             $user->id,
             $systemcontext,
