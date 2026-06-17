@@ -27,7 +27,6 @@
 // General plugin strings.
 
 $string['back_to_settings'] = 'Retour aux paramètres';
-$string['cachedef_statboard_hourly'] = 'Connexions horaires du tableau de bord';
 $string['cachedef_statboard_max'] = 'Maximum de connexions journalières (30 jours)';
 $string['cachedef_statboard_quiz'] = 'Quiz terminés aujourd\'hui';
 $string['cachedef_statboard_totals'] = 'Totaux du tableau de bord (utilisateurs, cours)';

@@ -20,8 +20,8 @@
  * Runs every night at 00:05 and:
  *   1. Calculates the number of distinct logins for the previous day (J-1)
  *      from {logstore_standard_log} and stores the result in
- *      {su_statboard_daily_stats}.
- *   2. Purges entries older than 30 days from {su_statboard_daily_stats}.
+ *      {local_su_statboard_api_daily_stats}.
+ *   2. Purges entries older than 30 days from {local_su_statboard_api_daily_stats}.
  *
  * This allows the Statboard API to serve max_connections instantly by reading
  * the small summary table instead of scanning 100M+ rows in logstore.
@@ -85,26 +85,26 @@ class aggregate_daily_stats extends \core\task\scheduled_task {
         mtrace("SU Statboard API: Found $logins logins for $datestr.");
         // Step 2 — Insert or update the record for J-1.
         // Uses UNIQUE index on statsdate to avoid duplicates.
-        $existing = $DB->get_record('su_statboard_daily_stats', ['statsdate' => $datestr]);
+        $existing = $DB->get_record('local_su_statboard_api_daily_stats', ['statsdate' => $datestr]);
 
         if ($existing) {
             $existing->logins      = $logins;
             $existing->timecreated = $now;
-            $DB->update_record('su_statboard_daily_stats', $existing);
+            $DB->update_record('local_su_statboard_api_daily_stats', $existing);
             mtrace("SU Statboard API: Updated existing record for $datestr.");
         } else {
             $record              = new \stdClass();
             $record->statsdate   = $datestr;
             $record->logins      = $logins;
             $record->timecreated = $now;
-            $DB->insert_record('su_statboard_daily_stats', $record);
+            $DB->insert_record('local_su_statboard_api_daily_stats', $record);
             mtrace("SU Statboard API: Inserted new record for $datestr.");
         }
         // Step 3 — Purge entries older than 30 days.
         // Keeps the summary table lean (max 30 rows).
         $cutoffdate = date('Y-m-d', strtotime('-30 days', $now));
         $deleted    = $DB->delete_records_select(
-            'su_statboard_daily_stats',
+            'local_su_statboard_api_daily_stats',
             'statsdate < :cutoff',
             ['cutoff' => $cutoffdate]
         );

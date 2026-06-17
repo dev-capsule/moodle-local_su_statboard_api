@@ -122,8 +122,10 @@ $message = '';
 $messagetype = '';
 
 // Capture form submissions through Moodle's optional_param() rather than $_POST directly.
-$regeneratesubmitted = optional_param('regenerate_token', '', PARAM_RAW);
-$settingssubmitted   = optional_param('submit_settings', '', PARAM_RAW);
+// PARAM_TEXT is used for the two submit buttons because their value comes from a translated
+// language string (e.g. "Regenerate token") — we only test for non-empty to detect a click.
+$regeneratesubmitted = optional_param('regenerate_token', '', PARAM_TEXT);
+$settingssubmitted   = optional_param('submit_settings', '', PARAM_TEXT);
 $noexpirationposted  = optional_param('token_no_expiration', 0, PARAM_BOOL);
 $expirationdateinput = optional_param('expiration_date', '', PARAM_TEXT);
 

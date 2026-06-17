@@ -127,11 +127,14 @@ function xmldb_local_su_statboard_api_uninstall() {
         }
 
         // 5. Remove configuration.
-        $configs = $DB->get_records('config_plugins', ['plugin' => 'local_su_statboard_api']);
+        // Use Moodle's configuration API (get_config / unset_all_config_for_plugin) rather than
+        // direct DML on {config_plugins}, per plugin contribution guidelines.
+        $configs = get_config('local_su_statboard_api');
+        $configcount = $configs ? count((array)$configs) : 0;
         unset_all_config_for_plugin('local_su_statboard_api');
 
-        if (!empty($configs)) {
-            mtrace('Configuration: Removed ' . count($configs) . ' setting(s)');
+        if ($configcount > 0) {
+            mtrace('Configuration: Removed ' . $configcount . ' setting(s)');
         }
 
         mtrace('Uninstallation completed successfully');

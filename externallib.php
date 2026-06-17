@@ -22,16 +22,17 @@
  *
  * Cache strategy:
  *   - total_users / total_courses : 1 hour   (very stable)
- *   - hourly_connections          : 5 min    (updated regularly)
- *   - quiz_completed_today        : 5 min    (changes during the day)
+  *   - quiz_completed_today        : 5 min    (changes during the day)
  *   - max_connections             : 15 min   (changes rarely during a day)
  *   - users_online_now            : no cache (real-time)
  *
  * Query breakdown (cache miss worst case):
- *   - users_online_now     : 1 query on {user} (always executed)
+ *   - users_online_now     : 1 query on {user} (always executed, no cache)
  *   - total_users/courses  : 2 queries on {user} and {course} (cached 1h)
- *   - max_connections      : 1 GROUP BY query on {logstore_standard_log} (cached 15min)
- *   - hourly_connections   : 1 GROUP BY query on {logstore_standard_log} (cached 5min)
+ *   - max_connections      : 1 COUNT(DISTINCT) on {logstore_standard_log} for today (cached 15min)
+ *                            + 1 read on {local_su_statboard_api_daily_stats} for J-1 to J-30 (instant)
+ *   - hourly_connections   : 1 read on {local_su_statboard_api_hourly_stats} for the requested day
+ *                            (≤ 24 rows, instant — no cache needed)
  *   - quiz_completed_today : 1 COUNT query on {quiz_attempts} (cached 5min)
  *
  * Compatible: MySQL, MariaDB, PostgreSQL (timestamps passed as parameters).
@@ -79,8 +80,12 @@ class local_su_statboard_api_external extends external_api {
             ['date' => $date]
         );
 
-        // Permission check.
+        // Context and capability checks (Moodle external service security guidelines).
+        // 1. validate_context() ensures the user has permission to access the given context
+        //    and sets it as the current page context (required for capability checks below).
+        // 2. require_capability() enforces the plugin-specific 'view' capability.
         $context = context_system::instance();
+        self::validate_context($context);
         require_capability('local/su_statboard_api:view', $context);
 
         // Include compatibility functions for cross-DB date/hour formatting.
@@ -99,7 +104,6 @@ class local_su_statboard_api_external extends external_api {
         $result = [];
         // Cache instances — defined once here and reused below for each metric group.
         $cachetotals = cache::make('local_su_statboard_api', 'statboard_totals');
-        $cachehourly = cache::make('local_su_statboard_api', 'statboard_hourly');
         $cachemax    = cache::make('local_su_statboard_api', 'statboard_max');
         $cachequiz   = cache::make('local_su_statboard_api', 'statboard_quiz');
         // 1. Total active users — cached 1 hour.
@@ -140,7 +144,7 @@ class local_su_statboard_api_external extends external_api {
         );
         /*
          * 4. Max daily connections over the last 30 days.
-         *    Source (J-1 to J-30) : {su_statboard_daily_stats} summary table — instant read.
+         *    Source (J-1 to J-30) : {local_su_statboard_api_daily_stats} summary table — instant read.
          *    Source (today)       : {logstore_standard_log} — fast (single day).
          *    Today is cached 15min; summary table is always read fresh (already aggregated).
          *    Uses exact eventname to avoid LIKE scans on a large logstore.
@@ -166,7 +170,7 @@ class local_su_statboard_api_external extends external_api {
         }
 
         // Read past days from the summary table (instant — max 30 rows).
-        $pastdays = $DB->get_records('su_statboard_daily_stats', null, 'statsdate DESC', 'statsdate, logins');
+        $pastdays = $DB->get_records('local_su_statboard_api_daily_stats', null, 'statsdate DESC', 'statsdate, logins');
 
         // Find the maximum across past days + today.
         $maxconnections = ['count' => $todaylogins, 'date' => date('Y-m-d', $startofday)];
@@ -181,7 +185,7 @@ class local_su_statboard_api_external extends external_api {
         $result['max_connections'] = $maxconnections;
         /*
          * 5. Hourly connected users for the current day.
-         *    Source : {su_statboard_hourly_stats} — pre-calculated by cron every 5min.
+         *    Source : {local_su_statboard_api_hourly_stats} — pre-calculated by cron every 5min.
          *    Instant read — max 24 rows.
          *    Falls back to 0 for hours not yet calculated by the cron.
          *    For today: show hours 0 to current hour.
@@ -191,7 +195,7 @@ class local_su_statboard_api_external extends external_api {
         $currenthour = $istoday ? (int)userdate($currenttime, '%H') : 23;
 
         // Read all hourly snapshots for today from the summary table.
-        $hourrows = $DB->get_records('su_statboard_hourly_stats',
+        $hourrows = $DB->get_records('local_su_statboard_api_hourly_stats',
             ['statsdate' => date('Y-m-d', $startofday)],
             'hour ASC',
             'hour, connections'

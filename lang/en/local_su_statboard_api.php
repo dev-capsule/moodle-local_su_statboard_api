@@ -27,7 +27,6 @@
 // General plugin strings.
 
 $string['back_to_settings'] = 'Back to settings';
-$string['cachedef_statboard_hourly'] = 'Dashboard hourly connections';
 $string['cachedef_statboard_max'] = 'Dashboard maximum daily connections (30 days)';
 $string['cachedef_statboard_quiz'] = 'Quiz completed today';
 $string['cachedef_statboard_totals'] = 'Dashboard totals (users, courses)';

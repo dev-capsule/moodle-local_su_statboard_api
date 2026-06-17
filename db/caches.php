@@ -22,8 +22,11 @@
  *
  * TTL summary:
  *   - statboard_totals     : 1 hour   (total_users, total_courses — very stable)
- *   - statboard_hourly     : 5 min    (hourly_connections — updated regularly)
- *   - statboard_max        : 15 min   (max_connections — changes rarely during a day)
+ *   - statboard_max        : 15 min   (max_connections today's count)
+ *   - statboard_quiz       : 5 min    (quiz_completed_today)
+ *
+ * hourly_connections is read directly from the {local_su_statboard_api_hourly_stats} summary
+ * table (≤ 24 rows per call) — no cache layer needed.
  *
  * users_online_now is NOT cached — it must remain real-time.
  *
@@ -42,14 +45,6 @@ $definitions = [
     'statboard_totals' => [
         'mode'      => cache_store::MODE_APPLICATION,
         'ttl'       => 3600, // 1 hour
-        'simplekeys' => true,
-        'simpledata' => true,
-    ],
-
-    // Hourly connections for the current day — cached 5 minutes.
-    'statboard_hourly' => [
-        'mode'      => cache_store::MODE_APPLICATION,
-        'ttl'       => 300, // 5 minutes
         'simplekeys' => true,
         'simpledata' => true,
     ],

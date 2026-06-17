@@ -5,6 +5,39 @@ All notable changes to the **`local_su_statboard_api`** plugin are documented in
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.3] — 2026-06-17
+
+### Changed (breaking, fixed by automatic upgrade)
+
+- **Tables renamed to follow the Frankenstyle convention** (`plugintype_pluginname_tablename`):
+  - `su_statboard_daily_stats` → `local_su_statboard_api_daily_stats`
+  - `su_statboard_hourly_stats` → `local_su_statboard_api_hourly_stats`
+  - Existing installations are migrated automatically by `db/upgrade.php` — no manual action required.
+
+### Fixed
+
+- **Security (BLOCKER)**: added `self::validate_context()` call in `get_statboard_stats()` (Moodle external service guideline).
+- **Security**: replaced two `PARAM_RAW` by `PARAM_TEXT` for submit-button parameters in `token_settings.php`.
+- **Best practice**: use `get_config()` instead of direct DML on `{config_plugins}` in the uninstaller.
+
+### Removed
+
+- Dead cache definition `statboard_hourly` that was declared but never used. `hourly_connections` reads directly from the aggregated summary table (≤ 24 rows per call, already instant).
+
+### Added
+
+- GitHub Actions CI workflow (`.github/workflows/ci.yml`) running Moodle Plugin CI across Moodle 4.1 → 4.5, PHP 8.0 → 8.3, PostgreSQL and MariaDB (14 jobs).
+- `db/upgrade.php` with the v1.0.3 table-rename migration block.
+
+## [1.0.2] — 2026-04-29
+
+### Changed
+
+- Plugin renamed from `local_su_dashboard_api` to `local_su_statboard_api`.
+- Documentation overhaul: `DEVELOPERS_fr.md` and `DEVELOPERS_en.md`, `README.md`, `CHANGELOG.md`, `LICENSE` (GPL v3).
+- Full Moodle CodeChecker compliance (0 errors, 0 warnings).
+- PHPUnit test suite (external, privacy provider, daily aggregation task).
+
 ## [1.0.0] — 2026-04-29
 
 ### Added
@@ -17,7 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `max_connections` — daily login peak over the last 30 days, with date.
   - `hourly_connections` — hourly snapshot of distinct active users.
   - `quiz_completed_today` — finished quiz attempts of the day.
-- MUC cache strategy with per-metric TTL (`statboard_totals` 1 h, `statboard_max` 15 min, `statboard_hourly` 5 min, `statboard_quiz` 5 min); `users_online_now` always live.
+- MUC cache strategy with per-metric TTL (`statboard_totals` 1 h, `statboard_max` 15 min, `statboard_quiz` 5 min); `users_online_now` always live; `hourly_connections` read directly from the summary table.
 - Two scheduled tasks (`blocking=1` for cluster safety):
   - `\local_su_statboard_api\task\aggregate_daily_stats` — nightly login aggregation (00:05).
   - `\local_su_statboard_api\task\aggregate_hourly_stats` — hourly snapshot aggregation (HH:01).
@@ -37,4 +70,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Requires Moodle 4.1 or later (`2022112800+`).
 
+[1.0.3]: https://github.com/dev-capsule/moodle-local_su_statboard_api/releases/tag/v1.0.3
+[1.0.2]: https://github.com/dev-capsule/moodle-local_su_statboard_api/releases/tag/v1.0.2
 [1.0.0]: https://github.com/dev-capsule/moodle-local_su_statboard_api/releases/tag/v1.0.0

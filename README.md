@@ -66,8 +66,8 @@ The installer (`db/install.php`) creates the following items in your Moodle data
 
 **Two custom tables** (declared in `db/install.xml`):
 
-- `su_statboard_daily_stats` — daily aggregated login counts, max 30 rows (rolling 30-day retention). **Contains only aggregated counters, no personal data.**
-- `su_statboard_hourly_stats` — hourly snapshots of active users, max 720 rows (24 × 30). **Contains only aggregated counters, no personal data.**
+- `local_su_statboard_api_daily_stats` — daily aggregated login counts, max 30 rows (rolling 30-day retention). **Contains only aggregated counters, no personal data.**
+- `local_su_statboard_api_hourly_stats` — hourly snapshots of active users, max 720 rows (24 × 30). **Contains only aggregated counters, no personal data.**
 
 **One dedicated webservice user**:
 
@@ -147,9 +147,9 @@ The `date` parameter is a Unix timestamp; pass `0` for today.
 |--------|-----|-----|
 | `total_users`, `total_courses` | 1 h | Very stable |
 | `max_connections` (today's count) | 15 min | Slow to change during the day |
-| `hourly_connections` | 5 min | Matches cron cadence |
 | `quiz_completed_today` | 5 min | Updates regularly |
 | `users_online_now` | none | Must stay real-time |
+| `hourly_connections` | none | Read from the pre-aggregated `local_su_statboard_api_hourly_stats` table (≤ 24 rows per call — already fast, no cache needed) |
 
 Cache keys for date-scoped metrics include the day (`max_today_YYYY-MM-DD`, `quiz_completed_YYYY-MM-DD`) so they reset automatically at midnight.
 
@@ -157,8 +157,8 @@ Cache keys for date-scoped metrics include the day (`max_today_YYYY-MM-DD`, `qui
 
 The plugin avoids scanning the `logstore_standard_log` on every API call by maintaining two summary tables fed by cron.
 
-- `\local_su_statboard_api\task\aggregate_daily_stats` — runs nightly at 00:05, computes distinct logins for J-1, persists into `su_statboard_daily_stats`, prunes entries older than 30 days.
-- `\local_su_statboard_api\task\aggregate_hourly_stats` — runs hourly at HH:01, takes a 5-minute snapshot for the previous hour boundary, persists into `su_statboard_hourly_stats`, prunes entries older than 30 days.
+- `\local_su_statboard_api\task\aggregate_daily_stats` — runs nightly at 00:05, computes distinct logins for J-1, persists into `local_su_statboard_api_daily_stats`, prunes entries older than 30 days.
+- `\local_su_statboard_api\task\aggregate_hourly_stats` — runs hourly at HH:01, takes a 5-minute snapshot for the previous hour boundary, persists into `local_su_statboard_api_hourly_stats`, prunes entries older than 30 days.
 
 Both tasks are declared `blocking=1` to prevent simultaneous execution across cluster nodes.
 
@@ -167,7 +167,7 @@ Both tasks are declared `blocking=1` to prevent simultaneous execution across cl
 This plugin handles personal data minimally:
 
 - **Web service tokens** linked to a Moodle user are stored in the standard `external_tokens` table. These are declared in the Privacy API and exported/deleted on GDPR request.
-- **Aggregated statistics tables** (`su_statboard_daily_stats`, `su_statboard_hourly_stats`) store only counters (number of distinct users, login counts) without any `userid` or other identifier. They are **not** declared in the Privacy API because they contain no personal data.
+- **Aggregated statistics tables** (`local_su_statboard_api_daily_stats`, `local_su_statboard_api_hourly_stats`) store only counters (number of distinct users, login counts) without any `userid` or other identifier. They are **not** declared in the Privacy API because they contain no personal data.
 - **Event logging**: each API call triggers a `stats_viewed` event into Moodle's standard logstore, attributed to the user identified by the token. Subject to standard Moodle log retention policies.
 
 See `classes/privacy/provider.php` for the full Privacy API declaration.
@@ -209,8 +209,4 @@ The plugin REST endpoint already exposes everything the app needs in a single ca
 
 ## License
 
-This plugin is distributed under the **GNU General Public License v3 or later**. See the `LICENSE` file for the full text.
-
-## Contributing
-
-Contributions are welcome. Please open an issue or merge request on the repository linked above.
+This plugin is distributed 

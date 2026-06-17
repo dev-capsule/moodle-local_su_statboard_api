@@ -27,7 +27,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $tasks = [
-    // Runs every night at 00:05 — aggregates J-1 logins into su_statboard_daily_stats.
+    // Runs every night at 00:05 — aggregates J-1 logins into local_su_statboard_api_daily_stats.
     // blocking=1 prevents simultaneous execution across the 4-server cluster.
     [
         'classname' => '\local_su_statboard_api\task\aggregate_daily_stats',
@@ -39,7 +39,7 @@ $tasks = [
         'dayofweek' => '*',
         'disabled'  => 0,
     ],
-    // Runs every hour at HH:01 — calculates the snapshot for the previous hour into su_statboard_hourly_stats.
+    // Runs every hour at HH:01 — calculates the snapshot for the previous hour into local_su_statboard_api_hourly_stats.
     // blocking=1 prevents simultaneous execution across the 4-server cluster.
     [
         'classname' => '\local_su_statboard_api\task\aggregate_hourly_stats',

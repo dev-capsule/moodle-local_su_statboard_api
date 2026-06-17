@@ -108,7 +108,7 @@ local/su_statboard_api/
 
 ### Tables custom créées par le plugin
 
-#### `su_statboard_daily_stats`
+#### `local_su_statboard_api_daily_stats`
 
 Agrégation quotidienne des connexions. Alimentée chaque nuit à 00:05 par la tâche `aggregate_daily_stats`. Contient au plus 30 lignes (rétention glissante).
 
@@ -121,7 +121,7 @@ Agrégation quotidienne des connexions. Alimentée chaque nuit à 00:05 par la t
 
 Index unique sur `statsdate` pour empêcher les doublons.
 
-#### `su_statboard_hourly_stats`
+#### `local_su_statboard_api_hourly_stats`
 
 Snapshots horaires des utilisateurs actifs. Alimentée chaque heure à HH:01 par la tâche `aggregate_hourly_stats`. Contient au plus 720 lignes (24 heures × 30 jours).
 
@@ -206,9 +206,9 @@ Implémentation : `local_su_statboard_api_external::get_statboard_stats()` dans 
 
 **`users_online_now`** — Utilisateurs réels actifs dans les 5 dernières minutes (basé sur `lastaccess`). Exclut les comptes techniques `webservice` et `nologin`. **Toujours en temps réel, jamais mis en cache.**
 
-**`max_connections`** — Pic de connexions sur les 30 derniers jours, avec la date du pic. Combine la table résumé `su_statboard_daily_stats` (J-1 à J-30) et un comptage SQL pour le jour courant.
+**`max_connections`** — Pic de connexions sur les 30 derniers jours, avec la date du pic. Combine la table résumé `local_su_statboard_api_daily_stats` (J-1 à J-30) et un comptage SQL pour le jour courant.
 
-**`hourly_connections`** — Tableau du nombre d'utilisateurs distincts actifs par tranche horaire du jour demandé. Pour aujourd'hui : heures 00 à l'heure courante. Pour un jour passé : 24 heures complètes. Lu directement dans `su_statboard_hourly_stats`.
+**`hourly_connections`** — Tableau du nombre d'utilisateurs distincts actifs par tranche horaire du jour demandé. Pour aujourd'hui : heures 00 à l'heure courante. Pour un jour passé : 24 heures complètes. Lu directement dans `local_su_statboard_api_hourly_stats`.
 
 **`quiz_completed_today`** — Nombre de tentatives de quiz dans l'état `finished` démarrées depuis 00:00 du jour demandé. Lecture sur `{quiz_attempts}`.
 
@@ -224,10 +224,11 @@ Quatre stores MUC sont déclarés dans `db/caches.php`, tous en mode `MODE_APPLI
 |-------|-----|----------------------|---------------|
 | `statboard_totals` | 1 h | `total_users`, `total_courses` | Données très stables |
 | `statboard_max` | 15 min | Comptage des connexions du jour pour `max_connections` | Évolue lentement dans la journée |
-| `statboard_hourly` | 5 min | (réservé) | Cohérence avec la fréquence du cron horaire |
 | `statboard_quiz` | 5 min | `quiz_completed_today` | Évolue régulièrement |
 
 `users_online_now` n'est **jamais mis en cache** — la métrique doit rester en temps réel.
+
+`hourly_connections` n'est **pas mis en cache** : la donnée est lue directement de la table agrégée `local_su_statboard_api_hourly_stats` (≤ 24 lignes par appel, lecture instantanée sur un index unique). Un cache n'apporterait aucun gain mesurable et introduirait un décalage avec le cron qui rafraîchit la table à `HH:01`.
 
 Les clés de cache de `max_connections` et `quiz_completed_today` incluent la date du jour (`max_today_YYYY-MM-DD`, `quiz_completed_YYYY-MM-DD`), ce qui assure une réinitialisation automatique au passage de minuit.
 
@@ -242,7 +243,7 @@ Déclarées dans `db/tasks.php`, toutes deux avec `blocking = 1` pour empêcher 
 À chaque exécution :
 
 1. Calcule le nombre de logins distincts pour J-1 en interrogeant `{logstore_standard_log}` avec un filtre `eventname = '\core\event\user_loggedin'` (utilisation de l'eventname exact pour éviter les `LIKE` coûteux sur des dizaines de millions de lignes).
-2. Insère ou met à jour la ligne correspondante dans `su_statboard_daily_stats` (l'index unique sur `statsdate` empêche les doublons).
+2. Insère ou met à jour la ligne correspondante dans `local_su_statboard_api_daily_stats` (l'index unique sur `statsdate` empêche les doublons).
 3. Purge toutes les entrées dont `statsdate` est plus ancien que J-30.
 
 ### `aggregate_hourly_stats` — horaire, HH:01
@@ -253,7 +254,7 @@ Déclarées dans `db/tasks.php`, toutes deux avec `blocking = 1` pour empêcher 
 
 1. Détermine l'heure qui vient de se terminer (10 dans cet exemple).
 2. Compte les utilisateurs distincts actifs sur la fenêtre `[H:00 - 5 min, H:00]` (par exemple 09:55 → 10:00) en filtrant sur `{logstore_standard_log}`, `userid > 1` et en excluant les événements `%webservice%`.
-3. Insère ou met à jour la ligne dans `su_statboard_hourly_stats` (index unique composite sur `(statsdate, hour)`).
+3. Insère ou met à jour la ligne dans `local_su_statboard_api_hourly_stats` (index unique composite sur `(statsdate, hour)`).
 4. Purge les entrées plus anciennes que 30 jours.
 
 ## Gestion des tokens
@@ -311,7 +312,7 @@ L'administrateur doit ensuite **activer manuellement les services web et le prot
 5. Marquage `deleted = 1` des utilisateurs `webservice_statboard_*`.
 6. Effacement de toute la configuration plugin via `unset_all_config_for_plugin('local_su_statboard_api')`.
 
-Les tables custom `su_statboard_daily_stats` et `su_statboard_hourly_stats` sont supprimées automatiquement par Moodle (déclaration XMLDB).
+Les tables custom `local_su_statboard_api_daily_stats` et `local_su_statboard_api_hourly_stats` sont supprimées automatiquement par Moodle (déclaration XMLDB).
 
 ## Sécurité et permissions
 
@@ -367,7 +368,7 @@ Tous les appels à `get_statboard_stats` exigent :
 
 ### Données non concernées par la Privacy API
 
-Les tables agrégées créées par le plugin (`su_statboard_daily_stats`, `su_statboard_hourly_stats`) ne sont **pas** déclarées dans `provider.php` car elles ne contiennent que des compteurs anonymes (nombre de connexions, nombre d'utilisateurs distincts). Aucun `userid` ni autre identifiant n'y est stocké, conformément au principe de minimisation des données.
+Les tables agrégées créées par le plugin (`local_su_statboard_api_daily_stats`, `local_su_statboard_api_hourly_stats`) ne sont **pas** déclarées dans `provider.php` car elles ne contiennent que des compteurs anonymes (nombre de connexions, nombre d'utilisateurs distincts). Aucun `userid` ni autre identifiant n'y est stocké, conformément au principe de minimisation des données.
 
 Les appels à l'API génèrent en revanche un événement `stats_viewed` dans le logstore standard de Moodle, attribué à l'utilisateur du token. Ces logs suivent la politique de rétention standard de Moodle et sont couverts par la déclaration `core_logging` ci-dessus.
 
@@ -394,7 +395,7 @@ Chaque fichier `lang/<code>/local_su_statboard_api.php` couvre l'ensemble des ch
 1. Ajouter la requête (idéalement avec cache MUC) dans `externallib.php::get_statboard_stats()`.
 2. Si la métrique mérite un nouveau store, déclarer une définition dans `db/caches.php` avec un TTL approprié et ajouter la chaîne `cachedef_<nom>` dans tous les fichiers de langue.
 3. Compléter `get_statboard_stats_returns()` avec la structure de retour.
-4. Si la requête doit s'exécuter sur des volumes importants, envisager une table résumé alimentée par cron sur le modèle de `su_statboard_daily_stats`.
+4. Si la requête doit s'exécuter sur des volumes importants, envisager une table résumé alimentée par cron sur le modèle de `local_su_statboard_api_daily_stats`.
 5. Tester sur PostgreSQL **et** sur MySQL/MariaDB.
 
 ### Ajouter une nouvelle fonction au service
@@ -470,27 +471,6 @@ La page de configuration `Administration du site > Plugins > Plugins locaux > St
 
 ```sql
 -- Lignes attendues : <= 30
-SELECT COUNT(*) FROM mdl_su_statboard_daily_stats;
+SELECT COUNT(*) FROM mdl_local_su_statboard_api_daily_stats;
 
--- Lignes attendues : <= 720
-SELECT COUNT(*) FROM mdl_su_statboard_hourly_stats;
-
--- Dernière agrégation
-SELECT MAX(timecreated) FROM mdl_su_statboard_daily_stats;
-SELECT MAX(timecreated) FROM mdl_su_statboard_hourly_stats;
-```
-
-### Vidage manuel du cache MUC
-
-Depuis l'interface : `Administration du site > Développement > Vidage des caches`.
-
-Depuis le CLI :
-
-```bash
-php admin/cli/purge_caches.php
-```
-
----
-
-**Version du document** : 3.0
-**Dernière mise à jour** : Avril 2026
+-- Lignes 
