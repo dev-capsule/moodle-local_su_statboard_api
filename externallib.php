@@ -30,8 +30,8 @@
  *   - users_online_now     : 1 query on {user} (always executed, no cache)
  *   - total_users/courses  : 2 queries on {user} and {course} (cached 1h)
  *   - max_connections      : 1 COUNT(DISTINCT) on {logstore_standard_log} for today (cached 15min)
- *                            + 1 read on {local_su_statboard_api_daily_stats} for J-1 to J-30 (instant)
- *   - hourly_connections   : 1 read on {local_su_statboard_api_hourly_stats} for the requested day
+ *                            + 1 read on {local_su_statboard_api_day} for J-1 to J-30 (instant)
+ *   - hourly_connections   : 1 read on {local_su_statboard_api_hour} for the requested day
  *                            (≤ 24 rows, instant — no cache needed)
  *   - quiz_completed_today : 1 COUNT query on {quiz_attempts} (cached 5min)
  *
@@ -144,7 +144,7 @@ class local_su_statboard_api_external extends external_api {
         );
         /*
          * 4. Max daily connections over the last 30 days.
-         *    Source (J-1 to J-30) : {local_su_statboard_api_daily_stats} summary table — instant read.
+         *    Source (J-1 to J-30) : {local_su_statboard_api_day} summary table — instant read.
          *    Source (today)       : {logstore_standard_log} — fast (single day).
          *    Today is cached 15min; summary table is always read fresh (already aggregated).
          *    Uses exact eventname to avoid LIKE scans on a large logstore.
@@ -170,7 +170,7 @@ class local_su_statboard_api_external extends external_api {
         }
 
         // Read past days from the summary table (instant — max 30 rows).
-        $pastdays = $DB->get_records('local_su_statboard_api_daily_stats', null, 'statsdate DESC', 'statsdate, logins');
+        $pastdays = $DB->get_records('local_su_statboard_api_day', null, 'statsdate DESC', 'statsdate, logins');
 
         // Find the maximum across past days + today.
         $maxconnections = ['count' => $todaylogins, 'date' => date('Y-m-d', $startofday)];
@@ -185,7 +185,7 @@ class local_su_statboard_api_external extends external_api {
         $result['max_connections'] = $maxconnections;
         /*
          * 5. Hourly connected users for the current day.
-         *    Source : {local_su_statboard_api_hourly_stats} — pre-calculated by cron every 5min.
+         *    Source : {local_su_statboard_api_hour} — pre-calculated by cron every 5min.
          *    Instant read — max 24 rows.
          *    Falls back to 0 for hours not yet calculated by the cron.
          *    For today: show hours 0 to current hour.
@@ -195,7 +195,7 @@ class local_su_statboard_api_external extends external_api {
         $currenthour = $istoday ? (int)userdate($currenttime, '%H') : 23;
 
         // Read all hourly snapshots for today from the summary table.
-        $hourrows = $DB->get_records('local_su_statboard_api_hourly_stats',
+        $hourrows = $DB->get_records('local_su_statboard_api_hour',
             ['statsdate' => date('Y-m-d', $startofday)],
             'hour ASC',
             'hour, connections'

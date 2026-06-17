@@ -10,8 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed (breaking, fixed by automatic upgrade)
 
 - **Tables renamed to follow the Frankenstyle convention** (`plugintype_pluginname_tablename`):
-  - `su_statboard_daily_stats` → `local_su_statboard_api_daily_stats`
-  - `su_statboard_hourly_stats` → `local_su_statboard_api_hourly_stats`
+  - `su_statboard_daily_stats` → `local_su_statboard_api_day`
+  - `su_statboard_hourly_stats` → `local_su_statboard_api_hour`
+
+  (Short suffixes used because Moodle's `sql_generator` enforces a 28-character table-name limit for Oracle compatibility.)
   - Existing installations are migrated automatically by `db/upgrade.php` — no manual action required.
 
 ### Fixed

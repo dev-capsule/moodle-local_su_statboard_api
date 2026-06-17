@@ -25,7 +25,7 @@
  *   - statboard_max        : 15 min   (max_connections today's count)
  *   - statboard_quiz       : 5 min    (quiz_completed_today)
  *
- * hourly_connections is read directly from the {local_su_statboard_api_hourly_stats} summary
+ * hourly_connections is read directly from the {local_su_statboard_api_hour} summary
  * table (≤ 24 rows per call) — no cache layer needed.
  *
  * users_online_now is NOT cached — it must remain real-time.

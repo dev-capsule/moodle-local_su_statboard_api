@@ -26,7 +26,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2026061700;
+$plugin->version   = 2026061701;
 $plugin->requires  = 2022112800;
 $plugin->component = 'local_su_statboard_api';
 $plugin->maturity  = MATURITY_STABLE;

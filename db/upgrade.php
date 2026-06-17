@@ -39,11 +39,11 @@ function xmldb_local_su_statboard_api_upgrade($oldversion) {
 
     // v1.0.3 — Rename custom tables to follow the Frankenstyle convention
     // (plugintype_pluginname_tablename), per Moodle plugin contribution guidelines.
-    if ($oldversion < 2026061700) {
+    if ($oldversion < 2026061701) {
 
         $renames = [
-            'su_statboard_daily_stats'  => 'local_su_statboard_api_daily_stats',
-            'su_statboard_hourly_stats' => 'local_su_statboard_api_hourly_stats',
+            'su_statboard_daily_stats'  => 'local_su_statboard_api_day',
+            'su_statboard_hourly_stats' => 'local_su_statboard_api_hour',
         ];
 
         foreach ($renames as $oldname => $newname) {
@@ -58,7 +58,7 @@ function xmldb_local_su_statboard_api_upgrade($oldversion) {
         }
 
         // Savepoint reached.
-        upgrade_plugin_savepoint(true, 2026061700, 'local', 'su_statboard_api');
+        upgrade_plugin_savepoint(true, 2026061701, 'local', 'su_statboard_api');
     }
 
     return true;

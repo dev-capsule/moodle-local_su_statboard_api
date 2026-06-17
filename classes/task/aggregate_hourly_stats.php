@@ -21,7 +21,7 @@
  *   1. Calculates the snapshot for the previous hour (H-1).
  *      Snapshot = distinct users active in the 5 minutes before H:00:00.
  *      e.g. at 11:01, calculates users active between 09:55 and 10:00.
- *   2. Stores the result in {local_su_statboard_api_hourly_stats}.
+ *   2. Stores the result in {local_su_statboard_api_hour}.
  *   3. Purges entries older than 30 days (max 720 rows = 24h x 30 days).
  *
  * Compatible: MySQL, MariaDB, PostgreSQL (timestamps as named parameters).
@@ -51,7 +51,7 @@ class aggregate_hourly_stats extends \core\task\scheduled_task {
     /**
      * Executes the task:
      *   1. Calculates snapshot for H-1 (the hour that just ended).
-     *   2. Inserts or updates the record in {local_su_statboard_api_hourly_stats}.
+     *   2. Inserts or updates the record in {local_su_statboard_api_hour}.
      *   3. Purges entries older than 30 days.
      */
     public function execute() {
@@ -87,7 +87,7 @@ class aggregate_hourly_stats extends \core\task\scheduled_task {
         mtrace("SU Statboard API: Found $connections connections for $datestr hour $hour.");
         // Step 3 — Insert or update the record.
         // UNIQUE index on (statsdate, hour) prevents duplicates.
-        $existing = $DB->get_record('local_su_statboard_api_hourly_stats', [
+        $existing = $DB->get_record('local_su_statboard_api_hour', [
             'statsdate' => $datestr,
             'hour'      => $hour,
         ]);
@@ -95,7 +95,7 @@ class aggregate_hourly_stats extends \core\task\scheduled_task {
         if ($existing) {
             $existing->connections = $connections;
             $existing->timecreated = $now;
-            $DB->update_record('local_su_statboard_api_hourly_stats', $existing);
+            $DB->update_record('local_su_statboard_api_hour', $existing);
             mtrace("SU Statboard API: Updated existing record for $datestr hour $hour.");
         } else {
             $record              = new \stdClass();
@@ -103,14 +103,14 @@ class aggregate_hourly_stats extends \core\task\scheduled_task {
             $record->hour        = $hour;
             $record->connections = $connections;
             $record->timecreated = $now;
-            $DB->insert_record('local_su_statboard_api_hourly_stats', $record);
+            $DB->insert_record('local_su_statboard_api_hour', $record);
             mtrace("SU Statboard API: Inserted new record for $datestr hour $hour.");
         }
         // Step 4 — Purge entries older than 30 days.
         // 24 hours x 30 days = 720 rows maximum.
         $cutoffdate = date('Y-m-d', strtotime('-30 days', $now));
         $deleted    = $DB->delete_records_select(
-            'local_su_statboard_api_hourly_stats',
+            'local_su_statboard_api_hour',
             'statsdate < :cutoff',
             ['cutoff' => $cutoffdate]
         );

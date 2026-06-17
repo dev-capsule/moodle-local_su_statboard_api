@@ -108,7 +108,7 @@ local/su_statboard_api/
 
 ### Custom tables created by the plugin
 
-#### `local_su_statboard_api_daily_stats`
+#### `local_su_statboard_api_day`
 
 Daily aggregation of logins. Populated every night at 00:05 by the `aggregate_daily_stats` task. Contains at most 30 rows (rolling retention).
 
@@ -121,7 +121,7 @@ Daily aggregation of logins. Populated every night at 00:05 by the `aggregate_da
 
 Unique index on `statsdate` to prevent duplicates.
 
-#### `local_su_statboard_api_hourly_stats`
+#### `local_su_statboard_api_hour`
 
 Hourly snapshots of active users. Populated every hour at HH:01 by the `aggregate_hourly_stats` task. Contains at most 720 rows (24 hours × 30 days).
 
@@ -206,9 +206,9 @@ Implementation: `local_su_statboard_api_external::get_statboard_stats()` in `ext
 
 **`users_online_now`** — Real users active in the last 5 minutes (based on `lastaccess`). Excludes `webservice` and `nologin` technical accounts. **Always real-time, never cached.**
 
-**`max_connections`** — Login peak over the last 30 days, with the peak date. Combines the `local_su_statboard_api_daily_stats` summary table (J-1 to J-30) and a SQL count for the current day.
+**`max_connections`** — Login peak over the last 30 days, with the peak date. Combines the `local_su_statboard_api_day` summary table (J-1 to J-30) and a SQL count for the current day.
 
-**`hourly_connections`** — Array of the number of distinct active users per hour of the requested day. For today: hours from 00 to the current hour. For a past day: 24 full hours. Read directly from `local_su_statboard_api_hourly_stats`.
+**`hourly_connections`** — Array of the number of distinct active users per hour of the requested day. For today: hours from 00 to the current hour. For a past day: 24 full hours. Read directly from `local_su_statboard_api_hour`.
 
 **`quiz_completed_today`** — Number of quiz attempts in `finished` state started since 00:00 of the requested day. Read from `{quiz_attempts}`.
 
@@ -228,7 +228,7 @@ Four MUC stores are declared in `db/caches.php`, all in `MODE_APPLICATION` mode 
 
 `users_online_now` is **never cached** — the metric must stay real-time.
 
-`hourly_connections` is **not cached** either: data is read directly from the aggregated `local_su_statboard_api_hourly_stats` summary table (≤ 24 rows per call, instant read on a unique index). A cache would bring no measurable benefit and would introduce a lag with the hourly cron that refreshes the table at `HH:01`.
+`hourly_connections` is **not cached** either: data is read directly from the aggregated `local_su_statboard_api_hour` summary table (≤ 24 rows per call, instant read on a unique index). A cache would bring no measurable benefit and would introduce a lag with the hourly cron that refreshes the table at `HH:01`.
 
 The cache keys for `max_connections` and `quiz_completed_today` include the current day (`max_today_YYYY-MM-DD`, `quiz_completed_YYYY-MM-DD`), ensuring automatic reset at midnight.
 
@@ -243,7 +243,7 @@ Declared in `db/tasks.php`, both with `blocking = 1` to prevent concurrent execu
 On each execution:
 
 1. Calculates the number of distinct logins for J-1 by querying `{logstore_standard_log}` with a filter `eventname = '\core\event\user_loggedin'` (using the exact eventname avoids costly `LIKE` scans on tens of millions of rows).
-2. Inserts or updates the corresponding row in `local_su_statboard_api_daily_stats` (the unique index on `statsdate` prevents duplicates).
+2. Inserts or updates the corresponding row in `local_su_statboard_api_day` (the unique index on `statsdate` prevents duplicates).
 3. Purges all entries whose `statsdate` is older than J-30.
 
 ### `aggregate_hourly_stats` — hourly, HH:01
@@ -254,7 +254,7 @@ On each execution (e.g. at 11:01):
 
 1. Determines the hour that just ended (10 in this example).
 2. Counts distinct users active over the window `[H:00 - 5 min, H:00]` (e.g. 09:55 → 10:00) by filtering on `{logstore_standard_log}`, `userid > 1` and excluding `%webservice%` events.
-3. Inserts or updates the row in `local_su_statboard_api_hourly_stats` (composite unique index on `(statsdate, hour)`).
+3. Inserts or updates the row in `local_su_statboard_api_hour` (composite unique index on `(statsdate, hour)`).
 4. Purges entries older than 30 days.
 
 ## Token management
@@ -312,7 +312,7 @@ The administrator must then **manually enable web services and the REST protocol
 5. Marks `deleted = 1` for `webservice_statboard_*` users.
 6. Wipes all plugin configuration via `unset_all_config_for_plugin('local_su_statboard_api')`.
 
-The custom tables `local_su_statboard_api_daily_stats` and `local_su_statboard_api_hourly_stats` are automatically removed by Moodle (XMLDB declaration).
+The custom tables `local_su_statboard_api_day` and `local_su_statboard_api_hour` are automatically removed by Moodle (XMLDB declaration).
 
 ## Security and permissions
 
@@ -368,7 +368,7 @@ All calls to `get_statboard_stats` require:
 
 ### Data outside the Privacy API scope
 
-The aggregated tables created by the plugin (`local_su_statboard_api_daily_stats`, `local_su_statboard_api_hourly_stats`) are **not** declared in `provider.php` because they contain only anonymous counters (connection counts, distinct user counts). No `userid` or other identifier is stored, in line with the data minimisation principle.
+The aggregated tables created by the plugin (`local_su_statboard_api_day`, `local_su_statboard_api_hour`) are **not** declared in `provider.php` because they contain only anonymous counters (connection counts, distinct user counts). No `userid` or other identifier is stored, in line with the data minimisation principle.
 
 API calls do, however, generate a `stats_viewed` event in Moodle's standard logstore, attributed to the user behind the token. These logs follow Moodle's standard retention policy and are covered by the `core_logging` declaration above.
 
@@ -395,7 +395,7 @@ Each file `lang/<code>/local_su_statboard_api.php` covers all the strings: plugi
 1. Add the query (ideally with MUC cache) in `externallib.php::get_statboard_stats()`.
 2. If the metric deserves a new store, declare a definition in `db/caches.php` with an appropriate TTL and add the `cachedef_<name>` string in all language files.
 3. Complete `get_statboard_stats_returns()` with the return structure.
-4. If the query needs to run against large volumes, consider a summary table populated by cron, following the `local_su_statboard_api_daily_stats` model.
+4. If the query needs to run against large volumes, consider a summary table populated by cron, following the `local_su_statboard_api_day` model.
 5. Test on PostgreSQL **and** on MySQL/MariaDB.
 
 ### Adding a new function to the service

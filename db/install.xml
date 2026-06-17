@@ -3,7 +3,7 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd">
     <TABLES>
-        <TABLE NAME="local_su_statboard_api_daily_stats" COMMENT="Daily aggregated login statistics for the SU Statboard API">
+        <TABLE NAME="local_su_statboard_api_day" COMMENT="Daily aggregated login statistics for the SU Statboard API">
             <FIELDS>
                 <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="Primary key"/>
                 <FIELD NAME="statsdate" TYPE="char" LENGTH="10" NOTNULL="true" COMMENT="Date in YYYY-MM-DD format"/>
@@ -14,10 +14,10 @@
                 <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
             </KEYS>
             <INDEXES>
-                <INDEX NAME="local_su_statboard_api_daily_stats_date_ix" UNIQUE="true" FIELDS="statsdate" COMMENT="Unique index on date to prevent duplicate entries"/>
+                <INDEX NAME="local_su_statboard_api_day_date_ix" UNIQUE="true" FIELDS="statsdate" COMMENT="Unique index on date to prevent duplicate entries"/>
             </INDEXES>
         </TABLE>
-        <TABLE NAME="local_su_statboard_api_hourly_stats" COMMENT="Hourly snapshot of connected users for the SU Statboard API">
+        <TABLE NAME="local_su_statboard_api_hour" COMMENT="Hourly snapshot of connected users for the SU Statboard API">
             <FIELDS>
                 <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="Primary key"/>
                 <FIELD NAME="statsdate" TYPE="char" LENGTH="10" NOTNULL="true" COMMENT="Date in YYYY-MM-DD format"/>
@@ -29,7 +29,7 @@
                 <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
             </KEYS>
             <INDEXES>
-                <INDEX NAME="local_su_statboard_api_hourly_stats_date_hour_ix" UNIQUE="true" FIELDS="statsdate, hour" COMMENT="Unique index on date+hour to prevent duplicate entries"/>
+                <INDEX NAME="local_su_statboard_api_hour_date_hour_ix" UNIQUE="true" FIELDS="statsdate, hour" COMMENT="Unique index on date+hour to prevent duplicate entries"/>
             </INDEXES>
         </TABLE>
     </TABLES>

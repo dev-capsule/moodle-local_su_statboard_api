@@ -37,7 +37,7 @@ use local_su_statboard_api\task\aggregate_daily_stats;
 final class task_aggregate_daily_stats_test extends advanced_testcase {
 
     /**
-     * The task should insert one row in {local_su_statboard_api_daily_stats} after running, with the count
+     * The task should insert one row in {local_su_statboard_api_day} after running, with the count
      * of distinct users who logged in on J-1.
      */
     public function test_task_inserts_yesterday_logins(): void {
@@ -84,7 +84,7 @@ final class task_aggregate_daily_stats_test extends advanced_testcase {
 
         // Assert that one row was created for J-1 with the expected count.
         $datestr = date('Y-m-d', $yesterday);
-        $row = $DB->get_record('local_su_statboard_api_daily_stats', ['statsdate' => $datestr]);
+        $row = $DB->get_record('local_su_statboard_api_day', ['statsdate' => $datestr]);
 
         $this->assertNotEmpty($row, 'A row for yesterday should have been inserted.');
         $this->assertEquals(2, (int)$row->logins);
@@ -105,7 +105,7 @@ final class task_aggregate_daily_stats_test extends advanced_testcase {
         ob_end_clean();
 
         $datestr = date('Y-m-d', strtotime('yesterday'));
-        $rows = $DB->get_records('local_su_statboard_api_daily_stats', ['statsdate' => $datestr]);
+        $rows = $DB->get_records('local_su_statboard_api_day', ['statsdate' => $datestr]);
 
         $this->assertLessThanOrEqual(1, count($rows),
             'No duplicate rows should be created when the task runs twice for the same date.');
@@ -125,7 +125,7 @@ final class task_aggregate_daily_stats_test extends advanced_testcase {
             'logins'      => 100,
             'timecreated' => time() - 60 * 86400,
         ];
-        $DB->insert_record('local_su_statboard_api_daily_stats', $oldrow);
+        $DB->insert_record('local_su_statboard_api_day', $oldrow);
 
         // Run the task.
         $task = new aggregate_daily_stats();
@@ -134,7 +134,7 @@ final class task_aggregate_daily_stats_test extends advanced_testcase {
         ob_end_clean();
 
         // Assert the old row is gone.
-        $remaining = $DB->get_record('local_su_statboard_api_daily_stats', ['statsdate' => $oldrow->statsdate]);
+        $remaining = $DB->get_record('local_su_statboard_api_day', ['statsdate' => $oldrow->statsdate]);
         $this->assertFalse($remaining, 'Entries older than 30 days should be purged.');
     }
 }
