@@ -175,11 +175,14 @@ function xmldb_local_su_statboard_api_install() {
         set_config('token_no_expiration', '1', 'local_su_statboard_api');
         mtrace('Settings: Token configured as permanent');
 
-        // 8. Generate token (modern Moodle 4.x API — does not require including externallib.php,
-        // which would conflict with PHPUnit isolation requirements at install time).
+        // 8. Generate token using the modern \core_external\util::generate_token() API.
+        // Avoids including lib/externallib.php (which would conflict with PHPUnit isolation
+        // requirements at install time).
+        // Note: EXTERNAL_TOKEN_PERMANENT is defined in lib/externallib.php as value 0; we use
+        // the literal 0 directly here to avoid triggering require_phpunit_isolation().
         $token = \core_external\util::generate_token(
-            \core_external\util::TOKEN_PERMANENT,
-            $service->id,
+            0, // EXTERNAL_TOKEN_PERMANENT.
+            $service,
             $user->id,
             $systemcontext,
             0,

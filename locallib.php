@@ -179,9 +179,12 @@ function local_su_statboard_api_regenerate_token() {
 
         // 7. Generate a new token via Moodle standard API.
         $context = context_system::instance();
+        // EXTERNAL_TOKEN_PERMANENT is defined in lib/externallib.php as value 0; we use the
+        // literal here to avoid having to include that file (PHPUnit isolation concern).
+        // util::generate_token() expects the service OBJECT, not its ID.
         $newtoken = \core_external\util::generate_token(
-            \core_external\util::TOKEN_PERMANENT,
-            $service->id,
+            0, // EXTERNAL_TOKEN_PERMANENT.
+            $service,
             $tokenrecord->userid,
             $context,
             $validuntil,
