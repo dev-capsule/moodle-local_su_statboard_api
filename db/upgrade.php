@@ -8,11 +8,11 @@
 //
 // Moodle is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle. If not, see <https://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * Upgrade script for local_su_statboard_api.
@@ -23,8 +23,6 @@
  * @copyright  2025 Thomas Naudin <thomas.naudin@sorbonne-universite.fr>
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * Run plugin upgrade steps.
@@ -40,7 +38,6 @@ function xmldb_local_su_statboard_api_upgrade($oldversion) {
     // v1.0.3 — Rename custom tables to follow the Frankenstyle convention
     // (plugintype_pluginname_tablename), per Moodle plugin contribution guidelines.
     if ($oldversion < 2026061701) {
-
         $renames = [
             'su_statboard_daily_stats'  => 'local_su_statboard_api_day',
             'su_statboard_hourly_stats' => 'local_su_statboard_api_hour',
