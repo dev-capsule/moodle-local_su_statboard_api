@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.3] — 2026-06-17
 
+### Changed (breaking)
+
+- **Minimum Moodle version raised to 4.2** (`2023042400+`). Moodle 4.1 LTS reached its
+  end-of-extended-support in December 2025; this release uses the modern
+  `\core_external\util` API introduced in 4.2 which avoids PHPUnit isolation issues
+  during installation. Users on Moodle 4.1 should stay on plugin v1.0.2 or upgrade Moodle first.
+
 ### Changed (breaking, fixed by automatic upgrade)
 
 - **Tables renamed to follow the Frankenstyle convention** (`plugintype_pluginname_tablename`):
@@ -28,7 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- GitHub Actions CI workflow (`.github/workflows/ci.yml`) running Moodle Plugin CI across Moodle 4.1 → 4.5, PHP 8.0 → 8.3, PostgreSQL and MariaDB (14 jobs).
+- GitHub Actions CI workflow (`.github/workflows/ci.yml`) running Moodle Plugin CI across Moodle 4.2 → 4.5, PHP 8.0 → 8.3, PostgreSQL and MariaDB (12 jobs).
 - `db/upgrade.php` with the v1.0.3 table-rename migration block.
 
 ## [1.0.2] — 2026-04-29

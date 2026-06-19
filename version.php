@@ -27,7 +27,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->version   = 2026061701;
-$plugin->requires  = 2022112800;
+$plugin->requires  = 2023042400; // Moodle 4.2.
 $plugin->component = 'local_su_statboard_api';
 $plugin->maturity  = MATURITY_STABLE;
 $plugin->release   = 'v1.0.3';

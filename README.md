@@ -19,7 +19,7 @@ Built for use on multi-server, high-volume Moodle installations.
 
 ## Requirements
 
-- Moodle 4.1 or later (`2022112800+`).
+- Moodle 4.2 or later (`2023042400+`).
 - PHP 8.0 or later.
 - One of: PostgreSQL 12+, MySQL 5.7.33+, MariaDB 10.6+.
 - Web services and the REST protocol must be enabled at the site level after installation.
