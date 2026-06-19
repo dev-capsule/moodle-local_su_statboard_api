@@ -65,7 +65,7 @@ final class external_test extends externallib_advanced_testcase {
         $result = local_su_statboard_api_external::get_statboard_stats(0);
 
         // External API returns must be cleaned through the validate process.
-        $result = \external_api::clean_returnvalue(
+        $result = \core_external\external_api::clean_returnvalue(
             local_su_statboard_api_external::get_statboard_stats_returns(),
             $result
         );
@@ -121,7 +121,7 @@ final class external_test extends externallib_advanced_testcase {
         $this->setUser($user);
 
         $result = local_su_statboard_api_external::get_statboard_stats(0);
-        $result = \external_api::clean_returnvalue(
+        $result = \core_external\external_api::clean_returnvalue(
             local_su_statboard_api_external::get_statboard_stats_returns(),
             $result
         );

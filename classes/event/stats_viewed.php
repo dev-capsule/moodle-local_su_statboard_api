@@ -36,7 +36,9 @@ class stats_viewed extends \core\event\base {
     protected function init() {
         $this->data['crud'] = 'r';
         $this->data['edulevel'] = self::LEVEL_OTHER;
-        $this->data['objecttable'] = 'logstore_standard_log';
+        // No objecttable: this event signals "stats viewed" but doesn't reference
+        // a specific record in any table. Setting objecttable would require objectid
+        // on every trigger() call, which has no semantic meaning here.
     }
 
     /**
