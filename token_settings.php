@@ -295,6 +295,7 @@ if ($settingssubmitted !== '' && confirm_sesskey()) {
 // Create context object for mustache template.
 $templatecontext = new stdClass();
 $templatecontext->sesskey = sesskey();
+$templatecontext->action = $PAGE->url->out(false);
 $templatecontext->token = $token;
 $templatecontext->token_no_expiration = ($noexpiration === '1');
 
