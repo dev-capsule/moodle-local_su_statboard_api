@@ -153,7 +153,7 @@ class local_su_statboard_api_external extends external_api {
          *    Today is cached 15min; summary table is always read fresh (already aggregated).
          *    Uses exact eventname to avoid LIKE scans on a large logstore.
          */
-        $maxcachekey  = 'max_today_' . date('Y-m-d', $startofday);
+        $maxcachekey  = 'max_today_' . date('Ymd', $startofday); // Date as digits only — MUC simple keys forbid hyphens.
         $todaylogins  = $cachemax->get($maxcachekey);
 
         if ($todaylogins === false) {
@@ -228,7 +228,7 @@ class local_su_statboard_api_external extends external_api {
          *    Portable : startofday passed as named parameter (no UNIX_TIMESTAMP()).
          *    Cache key includes the day so it resets automatically at midnight.
          */
-        $quizcachekey       = 'quiz_completed_' . date('Y-m-d', $startofday);
+        $quizcachekey       = 'quiz_completed_' . date('Ymd', $startofday); // Date as digits only — MUC simple keys forbid hyphens.
         $quizcompletedtoday = $cachequiz->get($quizcachekey);
 
         if ($quizcompletedtoday === false) {

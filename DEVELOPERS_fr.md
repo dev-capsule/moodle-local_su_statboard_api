@@ -230,7 +230,7 @@ Quatre stores MUC sont déclarés dans `db/caches.php`, tous en mode `MODE_APPLI
 
 `hourly_connections` n'est **pas mis en cache** : la donnée est lue directement de la table agrégée `local_su_statboard_api_hour` (≤ 24 lignes par appel, lecture instantanée sur un index unique). Un cache n'apporterait aucun gain mesurable et introduirait un décalage avec le cron qui rafraîchit la table à `HH:01`.
 
-Les clés de cache de `max_connections` et `quiz_completed_today` incluent la date du jour (`max_today_YYYY-MM-DD`, `quiz_completed_YYYY-MM-DD`), ce qui assure une réinitialisation automatique au passage de minuit.
+Les clés de cache de `max_connections` et `quiz_completed_today` incluent la date du jour (`max_today_YYYYMMDD`, `quiz_completed_YYYYMMDD`), ce qui assure une réinitialisation automatique au passage de minuit.
 
 ## Tâches planifiées
 

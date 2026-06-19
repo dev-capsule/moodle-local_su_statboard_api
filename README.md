@@ -151,7 +151,7 @@ The `date` parameter is a Unix timestamp; pass `0` for today.
 | `users_online_now` | none | Must stay real-time |
 | `hourly_connections` | none | Read from the pre-aggregated `local_su_statboard_api_hour` table (≤ 24 rows per call — already fast, no cache needed) |
 
-Cache keys for date-scoped metrics include the day (`max_today_YYYY-MM-DD`, `quiz_completed_YYYY-MM-DD`) so they reset automatically at midnight.
+Cache keys for date-scoped metrics include the day (`max_today_YYYYMMDD`, `quiz_completed_YYYYMMDD`) so they reset automatically at midnight.
 
 ### Scheduled tasks
 
