@@ -39,7 +39,6 @@ namespace local_su_statboard_api\task;
  * Scheduled task class for aggregating hourly connection snapshots.
  */
 class aggregate_hourly_stats extends \core\task\scheduled_task {
-
     /**
      * Returns the name of this task shown in the admin UI.
      * @return string

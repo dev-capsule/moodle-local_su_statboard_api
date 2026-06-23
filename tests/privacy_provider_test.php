@@ -36,7 +36,6 @@ use local_su_statboard_api\privacy\provider;
  * @covers \local_su_statboard_api\privacy\provider
  */
 final class privacy_provider_test extends advanced_testcase {
-
     /**
      * `get_metadata()` should declare the `external_tokens` table, the `moodle_webservice`
      * external link, and the `core_logging` subsystem.

@@ -26,9 +26,8 @@ define([], function() {
     /**
      * Initialize token manager functionality.
      *
-     * @param {Object} config Configuration parameters.
      */
-    var init = function(config) {
+    var init = function() {
         // Copy token button functionality.
         var copyBtn = document.getElementById('copy-token-btn');
         if (copyBtn) {

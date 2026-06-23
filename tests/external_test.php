@@ -43,7 +43,6 @@ require_once($CFG->dirroot . '/webservice/tests/helpers.php');
  * @covers \local_su_statboard_api_external
  */
 final class external_test extends externallib_advanced_testcase {
-
     /**
      * The function should return the expected response structure with all fields populated.
      */

@@ -251,7 +251,6 @@ function local_su_statboard_api_config_changed_observer(\core\event\config_log_c
 
     // Only process changes related to our plugin.
     if (isset($eventdata['other']['plugin']) && $eventdata['other']['plugin'] === 'local_su_statboard_api') {
-
         // Log the configuration change for audit purposes.
         $configname = isset($eventdata['other']['name']) ? $eventdata['other']['name'] : 'unknown';
         $configvalue = isset($eventdata['other']['value']) ? $eventdata['other']['value'] : 'unknown';

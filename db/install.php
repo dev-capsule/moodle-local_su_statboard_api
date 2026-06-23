@@ -71,7 +71,8 @@ function xmldb_local_su_statboard_api_install() {
 
     mtrace("Database compatibility: OK ($dbtype $dbversion[version])");
 
-    require_once($CFG->libdir . '/accesslib.php'); // For role_assign().
+    // Required for role_assign() used during permission setup.
+    require_once($CFG->libdir . '/accesslib.php');
 
     try {
         // 1. Clean up existing installation.
@@ -93,7 +94,8 @@ function xmldb_local_su_statboard_api_install() {
             ['webservice_statboard_%'],
             'id DESC',
             '*',
-            0, 1
+            0,
+            1
         );
         $existinguser = !empty($existingusers) ? reset($existingusers) : null;
 
@@ -150,8 +152,12 @@ function xmldb_local_su_statboard_api_install() {
 
         // 5. Add function to service.
         $functionname = 'local_su_statboard_api_get_statboard_stats';
-        if (!$DB->record_exists('external_services_functions',
-            ['externalserviceid' => $service->id, 'functionname' => $functionname])) {
+        if (
+            !$DB->record_exists(
+                'external_services_functions',
+                ['externalserviceid' => $service->id, 'functionname' => $functionname]
+            )
+        ) {
             $servicefunction = new stdClass();
             $servicefunction->externalserviceid = $service->id;
             $servicefunction->functionname = $functionname;
@@ -160,8 +166,12 @@ function xmldb_local_su_statboard_api_install() {
         mtrace('Function: API function linked to service');
 
         // 6. Authorize user for service.
-        if (!$DB->record_exists('external_services_users',
-            ['externalserviceid' => $service->id, 'userid' => $user->id])) {
+        if (
+            !$DB->record_exists(
+                'external_services_users',
+                ['externalserviceid' => $service->id, 'userid' => $user->id]
+            )
+        ) {
             $serviceuser = new stdClass();
             $serviceuser->externalserviceid = $service->id;
             $serviceuser->userid = $user->id;
@@ -195,7 +205,6 @@ function xmldb_local_su_statboard_api_install() {
         mtrace('Next steps: Enable web services and REST protocol in admin settings');
 
         return true;
-
     } catch (Exception $e) {
         mtrace('ERROR: Installation failed - ' . $e->getMessage());
         return false;

@@ -35,7 +35,7 @@ function xmldb_local_su_statboard_api_upgrade($oldversion) {
 
     $dbman = $DB->get_manager();
 
-    // v1.0.3 — Rename custom tables to follow the Frankenstyle convention
+    // Version 1.0.3 — Rename custom tables to follow the Frankenstyle convention
     // (plugintype_pluginname_tablename), per Moodle plugin contribution guidelines.
     if ($oldversion < 2026061701) {
         $renames = [

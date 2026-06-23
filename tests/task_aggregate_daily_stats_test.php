@@ -35,7 +35,6 @@ use local_su_statboard_api\task\aggregate_daily_stats;
  * @covers \local_su_statboard_api\task\aggregate_daily_stats
  */
 final class task_aggregate_daily_stats_test extends advanced_testcase {
-
     /**
      * The task should insert one row in {local_su_statboard_api_day} after running, with the count
      * of distinct users who logged in on J-1.
@@ -107,8 +106,11 @@ final class task_aggregate_daily_stats_test extends advanced_testcase {
         $datestr = date('Y-m-d', strtotime('yesterday'));
         $rows = $DB->get_records('local_su_statboard_api_day', ['statsdate' => $datestr]);
 
-        $this->assertLessThanOrEqual(1, count($rows),
-            'No duplicate rows should be created when the task runs twice for the same date.');
+        $this->assertLessThanOrEqual(
+            1,
+            count($rows),
+            'No duplicate rows should be created when the task runs twice for the same date.'
+        );
     }
 
     /**

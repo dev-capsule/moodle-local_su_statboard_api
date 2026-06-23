@@ -41,12 +41,11 @@ class provider implements
     // This plugin does store personal user data.
     \core_privacy\local\metadata\provider,
 
-    // This plugin processes data in the system context.
-    \core_privacy\local\request\plugin\provider,
-
     // This plugin can provide information about which users have data within it.
-    \core_privacy\local\request\core_userlist_provider {
+    \core_privacy\local\request\core_userlist_provider,
 
+    // This plugin processes data in the system context.
+    \core_privacy\local\request\plugin\provider {
     /**
      * Returns meta data about this system.
      *
@@ -242,7 +241,7 @@ class provider implements
             return;
         }
 
-        list($userinsql, $userinparams) = $DB->get_in_or_equal($userlist->get_userids(), SQL_PARAMS_NAMED);
+        [$userinsql, $userinparams] = $DB->get_in_or_equal($userlist->get_userids(), SQL_PARAMS_NAMED);
         $params = array_merge(['serviceid' => $service->id], $userinparams);
 
         $select = "externalserviceid = :serviceid AND userid {$userinsql}";
