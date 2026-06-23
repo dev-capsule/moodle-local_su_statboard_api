@@ -22,7 +22,7 @@
  *
  * Cache strategy:
  *   - total_users / total_courses : 1 hour   (very stable)
-  *   - quiz_completed_today        : 5 min    (changes during the day)
+ *   - quiz_completed_today        : 5 min    (changes during the day)
  *   - max_connections             : 15 min   (changes rarely during a day)
  *   - users_online_now            : no cache (real-time)
  *
@@ -81,10 +81,12 @@ class local_su_statboard_api_external extends external_api {
             ['date' => $date]
         );
 
-        // Context and capability checks (Moodle external service security guidelines).
-        // 1. validate_context() ensures the user has permission to access the given context
-        //    and sets it as the current page context (required for capability checks below).
-        // 2. require_capability() enforces the plugin-specific 'view' capability.
+        /*
+         * Context and capability checks (Moodle external service security guidelines).
+         * 1. validate_context() ensures the user has permission to access the given context
+         *    and sets it as the current page context (required for capability checks below).
+         * 2. require_capability() enforces the plugin-specific 'view' capability.
+         */
         $context = context_system::instance();
         self::validate_context($context);
         require_capability('local/su_statboard_api:view', $context);
@@ -196,7 +198,8 @@ class local_su_statboard_api_external extends external_api {
         $currenthour = $istoday ? (int)userdate($currenttime, '%H') : 23;
 
         // Read all hourly snapshots for today from the summary table.
-        $hourrows = $DB->get_records('local_su_statboard_api_hour',
+        $hourrows = $DB->get_records(
+            'local_su_statboard_api_hour',
             ['statsdate' => date('Y-m-d', $startofday)],
             'hour ASC',
             'hour, connections'

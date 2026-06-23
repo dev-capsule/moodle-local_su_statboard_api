@@ -31,8 +31,10 @@ if ($hassiteconfig) {
 
     require_once($CFG->dirroot . '/local/su_statboard_api/locallib.php');
 
-    $settings = new admin_settingpage('local_su_statboard_api_settings',
-        get_string('pluginname', 'local_su_statboard_api'));
+    $settings = new admin_settingpage(
+        'local_su_statboard_api_settings',
+        get_string('pluginname', 'local_su_statboard_api')
+    );
 
     // Add a link to the token management page.
     $settings->add(new admin_setting_heading(
@@ -60,16 +62,20 @@ if ($hassiteconfig) {
 
                 if ($noexpiration === '1' && !$hasrealexpiration) {
                     // Configuration says "no expiration" AND token really has no expiration.
-                    $expirationinfo = html_writer::tag('div',
+                    $expirationinfo = html_writer::tag(
+                        'div',
                         get_string('token_no_expiration_info', 'local_su_statboard_api'),
                         ['class' => 'alert alert-info']
                     );
                 } else if ($noexpiration === '1' && $hasrealexpiration) {
                     // Configuration says "no expiration" BUT token has an expiration - inconsistency!
-                    $expirationinfo = html_writer::tag('div',
-                        get_string('inconsistency_token_should_be_permanent',
+                    $expirationinfo = html_writer::tag(
+                        'div',
+                        get_string(
+                            'inconsistency_token_should_be_permanent',
                             'local_su_statboard_api',
-                            userdate($tokeninfo->validuntil, get_string('strftimedatetimeshort', 'core_langconfig'))),
+                            userdate($tokeninfo->validuntil, get_string('strftimedatetimeshort', 'core_langconfig'))
+                        ),
                         ['class' => 'alert alert-warning']
                     );
                 } else if ($noexpiration !== '1' && $hasrealexpiration) {
@@ -80,14 +86,18 @@ if ($hassiteconfig) {
                         ? get_string('token_expired', 'local_su_statboard_api')
                         : get_string('token_valid', 'local_su_statboard_api');
 
-                    $expirationinfo = html_writer::tag('div',
-                        $statustext . ': ' . userdate($tokeninfo->validuntil,
-                            get_string('strftimedatetimeshort', 'core_langconfig')),
+                    $expirationinfo = html_writer::tag(
+                        'div',
+                        $statustext . ': ' . userdate(
+                            $tokeninfo->validuntil,
+                            get_string('strftimedatetimeshort', 'core_langconfig')
+                        ),
                         ['class' => 'alert ' . $statusclass]
                     );
                 } else {
                     // Configuration says "has expiration" BUT token has no expiration - inconsistency!
-                    $expirationinfo = html_writer::tag('div',
+                    $expirationinfo = html_writer::tag(
+                        'div',
                         get_string('inconsistency_token_should_expire', 'local_su_statboard_api'),
                         ['class' => 'alert alert-warning']
                     );
@@ -103,7 +113,8 @@ if ($hassiteconfig) {
                 $settings->add(new admin_setting_heading(
                     'local_su_statboard_api/token_expiration_info',
                     get_string('token_expiration_date', 'local_su_statboard_api'),
-                    html_writer::tag('div',
+                    html_writer::tag(
+                        'div',
                         get_string('token_not_found_db', 'local_su_statboard_api'),
                         ['class' => 'alert alert-danger']
                     )
@@ -114,7 +125,8 @@ if ($hassiteconfig) {
             $settings->add(new admin_setting_heading(
                 'local_su_statboard_api/token_expiration_info',
                 get_string('token_expiration_date', 'local_su_statboard_api'),
-                html_writer::tag('div',
+                html_writer::tag(
+                    'div',
                     get_string('service_not_found', 'local_su_statboard_api'),
                     ['class' => 'alert alert-danger']
                 )
@@ -125,7 +137,8 @@ if ($hassiteconfig) {
         $settings->add(new admin_setting_heading(
             'local_su_statboard_api/token_expiration_info',
             get_string('token_expiration_date', 'local_su_statboard_api'),
-            html_writer::tag('div',
+            html_writer::tag(
+                'div',
                 get_string('no_token_configured', 'local_su_statboard_api'),
                 ['class' => 'alert alert-warning']
             )
@@ -136,7 +149,8 @@ if ($hassiteconfig) {
     $settings->add(new admin_setting_heading(
         'local_su_statboard_api/cron_info',
         get_string('cron_info_heading', 'local_su_statboard_api'),
-        html_writer::tag('div',
+        html_writer::tag(
+            'div',
             get_string('cron_info_desc', 'local_su_statboard_api'),
             ['class' => 'alert alert-info']
         ) .
@@ -148,7 +162,8 @@ if ($hassiteconfig) {
     $settings->add(new admin_setting_heading(
         'local_su_statboard_api/data_retention_info',
         get_string('data_retention_heading', 'local_su_statboard_api'),
-        html_writer::tag('div',
+        html_writer::tag(
+            'div',
             get_string('data_retention_desc', 'local_su_statboard_api'),
             ['class' => 'alert alert-info']
         )

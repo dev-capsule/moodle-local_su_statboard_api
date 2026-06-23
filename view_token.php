@@ -53,7 +53,8 @@ if ($service && $token) {
     if ($tokeninfo) {
         // Create expiration information.
         if (empty($tokeninfo->validuntil)) {
-            $expirationinfo = html_writer::tag('div',
+            $expirationinfo = html_writer::tag(
+                'div',
                 get_string('token_no_expiration_info', 'local_su_statboard_api'),
                 ['class' => 'alert alert-info mt-3']
             );
@@ -64,7 +65,8 @@ if ($service && $token) {
                 ? get_string('token_expired', 'local_su_statboard_api')
                 : get_string('token_valid', 'local_su_statboard_api');
 
-            $expirationinfo = html_writer::tag('div',
+            $expirationinfo = html_writer::tag(
+                'div',
                 $statustext . ': ' . userdate($tokeninfo->validuntil, get_string('strftimedatetimeshort', 'core_langconfig')),
                 ['class' => 'alert ' . $statusclass . ' mt-3']
             );

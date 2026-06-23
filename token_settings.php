@@ -310,7 +310,8 @@ $templatecontext->min_date = date('Y-m-d', time());
 // Create HTML for expiration status.
 $expirationhtml = '';
 if ($noexpiration === '1') {
-    $expirationhtml = html_writer::tag('div',
+    $expirationhtml = html_writer::tag(
+        'div',
         get_string('token_no_expiration_info', 'local_su_statboard_api'),
         ['class' => 'alert alert-info']
     );
@@ -320,14 +321,17 @@ if ($noexpiration === '1') {
         ? get_string('token_expired', 'local_su_statboard_api')
         : get_string('token_valid', 'local_su_statboard_api');
 
-    $expirationhtml = html_writer::tag('div',
+    $expirationhtml = html_writer::tag(
+        'div',
         $statustext . ': ' . userdate($expirationdate, get_string('strftimedatetimeshort', 'core_langconfig')),
         ['class' => 'alert ' . $statusclass]
     );
 }
 $templatecontext->current_expiration_html = $expirationhtml;
-$templatecontext->return_url = new moodle_url('/admin/settings.php',
-    ['section' => 'local_su_statboard_api_settings']);
+$templatecontext->return_url = new moodle_url(
+    '/admin/settings.php',
+    ['section' => 'local_su_statboard_api_settings']
+);
 
 // Display message if present.
 if (!empty($message)) {
