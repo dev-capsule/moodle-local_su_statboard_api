@@ -40,7 +40,7 @@ GNU GPL v3 or later.
 
 ### Moodle
 
-- Minimum required version: Moodle 4.2 (`2023042400`).
+- Minimum version: Moodle 4.2 (`2023042400`). Tested against Moodle 4.2, 4.3, 4.4, 4.5 LTS, 5.0, 5.1 and 5.2 (current stable).
 - Compatibility tested up to Moodle 4.5+.
 
 ### Databases

@@ -40,7 +40,7 @@ GNU GPL v3 ou ultérieure.
 
 ### Moodle
 
-- Version minimum requise : Moodle 4.2 (`2023042400`).
+- Version minimum : Moodle 4.2 (`2023042400`). Le plugin est testé sur Moodle 4.2, 4.3, 4.4, 4.5 LTS, 5.0, 5.1 et 5.2 (dernière stable).
 - Compatibilité testée jusqu'à Moodle 4.5+.
 
 ### Bases de données
