@@ -265,7 +265,7 @@ Toute la logique se trouve dans `locallib.php`. Une page d'administration dédi�
 ### Fonctions principales
 
 `local_su_statboard_api_regenerate_token()`
-Génère un nouveau token via `external_generate_token()` (token permanent par défaut), supprime l'ancien et persiste le nouveau dans `config_plugins`. Respecte la configuration `token_no_expiration` et `token_validity_period`.
+Génère un nouveau token via `\core_external\util::generate_token()` (API moderne Moodle 4.x, token permanent par défaut), supprime l'ancien et persiste le nouveau dans `config_plugins`. Respecte la configuration `token_no_expiration` et `token_validity_period`.
 
 `local_su_statboard_api_update_expiration_date($timestamp)`
 Met à jour la date d'expiration de tous les tokens du service et synchronise la valeur `token_validity_period` (en jours) dans la configuration.
@@ -296,7 +296,8 @@ Le contrôleur `token_settings.php` détecte et corrige automatiquement les inco
 6. Liaison de la fonction `local_su_statboard_api_get_statboard_stats` au service.
 7. Autorisation de l'utilisateur webservice pour ce service.
 8. Configuration : `token_validity_period = 365`, `token_no_expiration = '1'`.
-9. Génération d'un token permanent via `external_generate_token(EXTERNAL_TOKEN_PERMANENT, ...)` et persistance dans `config_plugins`.
+9. Génération d'un token permanent via `\core_external\util::generate_token()` (API moderne Moodle 4.x) et persistance dans `config_plugins`.
+10. Acceptation automatique de toutes les politiques actives du site pour le webservice user (legacy `policyagreed` + `tool_policy_acceptances`).
 
 L'installeur `mtrace` chaque étape pour faciliter le diagnostic en CLI.
 
