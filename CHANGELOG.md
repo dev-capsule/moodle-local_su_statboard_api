@@ -5,6 +5,25 @@ All notable changes to the **`local_su_statboard_api`** plugin are documented in
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.5] — 2026-06-26
+
+### Added
+
+- **Auto-accept site policies for the webservice user**: when a Moodle admin
+  publishes a new privacy policy or terms of service, all users — including
+  machine accounts — are normally required to accept it before any further
+  action. The `webservice_statboard_*` account cannot click "I accept" in a
+  browser, which caused all API calls to fail with "Politique du site pas
+  acceptée" after each policy update.
+  - `db/install.php` now auto-accepts all active policies for the dedicated
+    webservice user at install time.
+  - `db/upgrade.php` does the same on upgrade for any existing
+    `webservice_statboard_*` users.
+  - Compatible with both the legacy `{user}.policyagreed` flag and the modern
+    `tool_policy_acceptances` mechanism (Moodle 3.7+).
+  - New helper `local_su_statboard_api_accept_all_policies($userid)` in
+    `locallib.php`.
+
 ## [1.0.4] — 2026-06-26
 
 ### Changed
@@ -102,6 +121,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Requires Moodle 4.1 or later (`2022112800+`).
 
+[1.0.5]: https://github.com/dev-capsule/moodle-local_su_statboard_api/releases/tag/v1.0.5
 [1.0.4]: https://github.com/dev-capsule/moodle-local_su_statboard_api/releases/tag/v1.0.4
 [1.0.3]: https://github.com/dev-capsule/moodle-local_su_statboard_api/releases/tag/v1.0.3
 [1.0.2]: https://github.com/dev-capsule/moodle-local_su_statboard_api/releases/tag/v1.0.2

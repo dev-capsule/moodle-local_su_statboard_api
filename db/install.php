@@ -73,6 +73,8 @@ function xmldb_local_su_statboard_api_install() {
 
     // Required for role_assign() used during permission setup.
     require_once($CFG->libdir . '/accesslib.php');
+    // Helper to auto-accept site policies for the webservice user.
+    require_once($CFG->dirroot . '/local/su_statboard_api/locallib.php');
 
     try {
         // 1. Clean up existing installation.
@@ -131,6 +133,10 @@ function xmldb_local_su_statboard_api_install() {
             }
             mtrace('Permissions: Manager role assigned');
         }
+
+        // Auto-accept site policies for this machine user (it can never visit the policy UI).
+        local_su_statboard_api_accept_all_policies($user->id);
+        mtrace('Policies: Auto-accepted for the webservice user.');
 
         // 4. Create web service.
         $service = new stdClass();

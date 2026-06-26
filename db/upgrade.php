@@ -31,9 +31,10 @@
  * @return bool
  */
 function xmldb_local_su_statboard_api_upgrade($oldversion) {
-    global $DB;
+    global $DB, $CFG;
 
     $dbman = $DB->get_manager();
+    require_once($CFG->dirroot . '/local/su_statboard_api/locallib.php');
 
     // Version 1.0.3 — Rename custom tables to follow the Frankenstyle convention
     // (plugintype_pluginname_tablename), per Moodle plugin contribution guidelines.
@@ -56,6 +57,22 @@ function xmldb_local_su_statboard_api_upgrade($oldversion) {
 
         // Savepoint reached.
         upgrade_plugin_savepoint(true, 2026061701, 'local', 'su_statboard_api');
+    }
+
+    // v1.0.5 — Auto-accept site policies for existing webservice users (machine accounts
+    // that cannot interactively click "I accept" when policies are added/updated).
+    if ($oldversion < 2026062601) {
+
+        $webserviceusers = $DB->get_records_select(
+            'user',
+            'username LIKE ? AND deleted = 0',
+            ['webservice_statboard_%']
+        );
+        foreach ($webserviceusers as $wsuser) {
+            local_su_statboard_api_accept_all_policies($wsuser->id);
+        }
+
+        upgrade_plugin_savepoint(true, 2026062601, 'local', 'su_statboard_api');
     }
 
     return true;

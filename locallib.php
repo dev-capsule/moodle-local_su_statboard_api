@@ -366,3 +366,49 @@ function local_su_statboard_api_get_header_context($title) {
         'plugin_name' => get_string('pluginname', 'local_su_statboard_api'),
     ];
 }
+
+/**
+ * Auto-accept all active site policies for the given user.
+ *
+ * This is used for the dedicated webservice user (`webservice_statboard_*`) which is a
+ * machine account that cannot interactively accept policy updates via the browser.
+ * Without this, any new or updated site policy (privacy policy, terms, etc.) would
+ * silently block all API calls.
+ *
+ * Handles both Moodle's legacy `{user}.policyagreed` flag and the modern `tool_policy`
+ * acceptances mechanism (Moodle 3.7+). Safe to call multiple times.
+ *
+ * @param int $userid The user ID to mark as having accepted all policies.
+ * @return void
+ */
+function local_su_statboard_api_accept_all_policies($userid) {
+    global $DB, $CFG;
+
+    // 1. Legacy policy flag — works on all Moodle versions.
+    $DB->set_field('user', 'policyagreed', 1, ['id' => $userid]);
+
+    // 2. Modern tool_policy acceptances — only if the table exists and the API is loaded.
+    $dbman = $DB->get_manager();
+    if (!$dbman->table_exists('tool_policy') || !$dbman->table_exists('tool_policy_versions')) {
+        return;
+    }
+
+    if (file_exists($CFG->dirroot . '/admin/tool/policy/classes/api.php')) {
+        require_once($CFG->dirroot . '/admin/tool/policy/classes/api.php');
+
+        try {
+            $activeversions = \tool_policy\api::list_current_versions();
+            $versionids = [];
+            foreach ($activeversions as $version) {
+                $versionids[] = $version->id;
+            }
+            if (!empty($versionids)) {
+                \tool_policy\api::accept_policies($versionids, $userid, null, 'Auto-accepted by local_su_statboard_api install/upgrade for webservice user.');
+            }
+        } catch (Exception $e) {
+            // Don't block install/upgrade if the policy API call fails — the legacy flag is set anyway.
+            mtrace('Notice: could not auto-accept tool_policy versions for user ' . $userid . ': ' . $e->getMessage());
+        }
+    }
+}
+
