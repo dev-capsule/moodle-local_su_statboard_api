@@ -206,7 +206,7 @@ Implementation: `local_su_statboard_api_external::get_statboard_stats()` in `ext
 
 **`users_online_now`** — Real users active in the last 5 minutes (based on `lastaccess`). Excludes `webservice` and `nologin` technical accounts. **Always real-time, never cached.**
 
-**`max_connections`** — Login peak over the last 30 days, with the peak date. Combines the `local_su_statboard_api_day` summary table (J-1 to J-30) and a SQL count for the current day.
+**`max_connections`** — Active-user peak over the last 30 days, with the peak date. Combines the `local_su_statboard_api_day` summary table (J-1 to J-30, fed by the daily cron) and a live count on `{user}.lastaccess` for the current day (avoids any runtime query on `logstore_standard_log`, per Moodle review recommendation).
 
 **`hourly_connections`** — Array of the number of distinct active users per hour of the requested day. For today: hours from 00 to the current hour. For a past day: 24 full hours. Read directly from `local_su_statboard_api_hour`.
 

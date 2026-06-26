@@ -69,17 +69,19 @@ class aggregate_hourly_stats extends \core\task\scheduled_task {
         mtrace("SU Statboard API: Calculating snapshot for $datestr hour $hour (window: " .
             date('H:i', $since) . " -> " . date('H:i', $until) . ")...");
         // Step 2 — Count distinct users in the 5-minute window.
-        // Compatible: timestamps as named parameters (no UNIX_TIMESTAMP()).
+        // Uses the exact eventname filter (indexed) instead of NOT LIKE '%webservice%'
+        // for performance on large logstores, consistent with the daily aggregation task.
         $connections = $DB->count_records_sql(
             "SELECT COUNT(DISTINCT userid)
                FROM {logstore_standard_log}
               WHERE timecreated >= :since
                 AND timecreated < :until
                 AND userid > 1
-                AND eventname NOT LIKE '%webservice%'",
+                AND eventname = :eventname",
             [
-                'since' => $since,
-                'until' => $until,
+                'since'     => $since,
+                'until'     => $until,
+                'eventname' => '\\core\\event\\user_loggedin',
             ]
         );
 

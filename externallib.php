@@ -29,7 +29,7 @@
  * Query breakdown (cache miss worst case):
  *   - users_online_now     : 1 query on {user} (always executed, no cache)
  *   - total_users/courses  : 2 queries on {user} and {course} (cached 1h)
- *   - max_connections      : 1 COUNT(DISTINCT) on {logstore_standard_log} for today (cached 15min)
+ *   - max_connections      : 1 COUNT(DISTINCT) on {user}.lastaccess for today (cached 15min, ≤ 50k rows)
  *                            + 1 read on {local_su_statboard_api_day} for J-1 to J-30 (instant)
  *   - hourly_connections   : 1 read on {local_su_statboard_api_hour} for the requested day
  *                            (≤ 24 rows, instant — no cache needed)
@@ -148,25 +148,31 @@ class local_su_statboard_api_external extends external_api {
         /*
          * 4. Max daily connections over the last 30 days.
          *    Source (J-1 to J-30) : {local_su_statboard_api_day} summary table — instant read.
-         *    Source (today)       : {logstore_standard_log} — fast (single day).
+         *    Source (today)       : {user}.lastaccess — counts active users today.
          *    Today is cached 15min; summary table is always read fresh (already aggregated).
-         *    Uses exact eventname to avoid LIKE scans on a large logstore.
+         *    Note: queries {user} (max ~50k rows) instead of {logstore_standard_log}
+         *    (potentially 100M+ rows) per the reviewer's recommendation to avoid runtime
+         *    scans of the logstore. Semantically, "today's count" now means "distinct
+         *    users active today" (rather than "logged in today") — a more accurate proxy
+         *    for current usage that includes ongoing sessions.
          */
         $maxcachekey  = 'max_today_' . date('Ymd', $startofday); // Date as digits only — MUC simple keys forbid hyphens.
         $todaylogins  = $cachemax->get($maxcachekey);
 
         if ($todaylogins === false) {
             $todaylogins = $DB->count_records_sql(
-                "SELECT COUNT(DISTINCT userid)
-                   FROM {logstore_standard_log}
-                  WHERE timecreated >= :startofday
-                    AND timecreated <= :currenttime
-                    AND userid > 1
-                    AND eventname = :eventname",
+                "SELECT COUNT(DISTINCT u.id)
+                   FROM {user} u
+                  WHERE u.lastaccess >= :startofday
+                    AND u.lastaccess <= :currenttime
+                    AND u.deleted = 0
+                    AND u.suspended = 0
+                    AND u.confirmed = 1
+                    AND u.id > 1
+                    AND u.auth NOT IN ('webservice', 'nologin')",
                 [
                     'startofday'  => $startofday,
                     'currenttime' => $currenttime,
-                    'eventname'   => '\\core\\event\\user_loggedin',
                 ]
             );
             $cachemax->set($maxcachekey, $todaylogins);

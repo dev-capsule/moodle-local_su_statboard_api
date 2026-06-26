@@ -135,7 +135,7 @@ The `date` parameter is a Unix timestamp; pass `0` for today.
 | `total_users` | Active users (not deleted, not suspended) |
 | `total_courses` | Number of courses excluding the front page (`id > 1`) |
 | `users_online_now` | Real users active in the last 5 minutes (excludes `webservice` and `nologin` accounts). Always live, never cached. |
-| `max_connections` | Daily login peak over the last 30 days, with date |
+| `max_connections` | Daily active-user peak over the last 30 days, with date |
 | `hourly_connections` | Hourly snapshot of distinct active users for the requested day |
 | `quiz_completed_today` | Number of quiz attempts in `finished` state for the requested day |
 
