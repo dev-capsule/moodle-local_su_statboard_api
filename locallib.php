@@ -403,7 +403,12 @@ function local_su_statboard_api_accept_all_policies($userid) {
                 $versionids[] = $version->id;
             }
             if (!empty($versionids)) {
-                \tool_policy\api::accept_policies($versionids, $userid, null, 'Auto-accepted by local_su_statboard_api install/upgrade for webservice user.');
+                \tool_policy\api::accept_policies(
+                    $versionids,
+                    $userid,
+                    null,
+                    'Auto-accepted by local_su_statboard_api install/upgrade for webservice user.'
+                );
             }
         } catch (Exception $e) {
             // Don't block install/upgrade if the policy API call fails — the legacy flag is set anyway.
@@ -411,4 +416,3 @@ function local_su_statboard_api_accept_all_policies($userid) {
         }
     }
 }
-

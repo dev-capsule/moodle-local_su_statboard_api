@@ -59,10 +59,9 @@ function xmldb_local_su_statboard_api_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026061701, 'local', 'su_statboard_api');
     }
 
-    // v1.0.5 — Auto-accept site policies for existing webservice users (machine accounts
+    // Version 1.0.5 — Auto-accept site policies for existing webservice users (machine accounts
     // that cannot interactively click "I accept" when policies are added/updated).
     if ($oldversion < 2026062601) {
-
         $webserviceusers = $DB->get_records_select(
             'user',
             'username LIKE ? AND deleted = 0',
