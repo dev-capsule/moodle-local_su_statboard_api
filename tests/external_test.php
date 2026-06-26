@@ -29,18 +29,17 @@ namespace local_su_statboard_api;
 use advanced_testcase;
 use context_system;
 use externallib_advanced_testcase;
-use local_su_statboard_api_external;
+use local_su_statboard_api\external\get_statboard_stats;
 
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
-require_once($CFG->dirroot . '/local/su_statboard_api/externallib.php');
 require_once($CFG->dirroot . '/webservice/tests/helpers.php');
 
 /**
- * Tests for {@see local_su_statboard_api_external::get_statboard_stats()}.
+ * Tests for {@see get_statboard_stats::execute()}.
  *
- * @covers \local_su_statboard_api_external
+ * @covers \local_su_statboard_api\external\get_statboard_stats
  */
 final class external_test extends externallib_advanced_testcase {
     /**
@@ -61,11 +60,11 @@ final class external_test extends externallib_advanced_testcase {
         $this->getDataGenerator()->create_course();
 
         // Call the external function.
-        $result = local_su_statboard_api_external::get_statboard_stats(0);
+        $result = get_statboard_stats::execute(0);
 
         // External API returns must be cleaned through the validate process.
         $result = \core_external\external_api::clean_returnvalue(
-            local_su_statboard_api_external::get_statboard_stats_returns(),
+            get_statboard_stats::execute_returns(),
             $result
         );
 
@@ -104,7 +103,7 @@ final class external_test extends externallib_advanced_testcase {
         $this->setUser($user);
 
         $this->expectException(\required_capability_exception::class);
-        local_su_statboard_api_external::get_statboard_stats(0);
+        get_statboard_stats::execute(0);
     }
 
     /**
@@ -119,9 +118,9 @@ final class external_test extends externallib_advanced_testcase {
         role_assign($managerrole, $user->id, $context->id);
         $this->setUser($user);
 
-        $result = local_su_statboard_api_external::get_statboard_stats(0);
+        $result = get_statboard_stats::execute(0);
         $result = \core_external\external_api::clean_returnvalue(
-            local_su_statboard_api_external::get_statboard_stats_returns(),
+            get_statboard_stats::execute_returns(),
             $result
         );
 

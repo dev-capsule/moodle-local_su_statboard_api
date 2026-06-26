@@ -15,10 +15,9 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * External functions for local_su_statboard_api.
+ * External function: get_statboard_stats.
  *
- * OPTIMIZED VERSION WITH CACHE - Reduced from 55+ queries to 4 queries per call,
- * with MUC (Moodle Universal Cache) for non-real-time metrics.
+ * Returns a complete set of platform usage statistics in a single call.
  *
  * Cache strategy:
  *   - total_users / total_courses : 1 hour   (very stable)
@@ -29,10 +28,10 @@
  * Query breakdown (cache miss worst case):
  *   - users_online_now     : 1 query on {user} (always executed, no cache)
  *   - total_users/courses  : 2 queries on {user} and {course} (cached 1h)
- *   - max_connections      : 1 COUNT(DISTINCT) on {user}.lastaccess for today (cached 15min, ≤ 50k rows)
+ *   - max_connections      : 1 COUNT(DISTINCT) on {user}.lastaccess for today (cached 15min, < 50k rows)
  *                            + 1 read on {local_su_statboard_api_day} for J-1 to J-30 (instant)
  *   - hourly_connections   : 1 read on {local_su_statboard_api_hour} for the requested day
- *                            (≤ 24 rows, instant — no cache needed)
+ *                            (24 rows max, instant - no cache needed)
  *   - quiz_completed_today : 1 COUNT query on {quiz_attempts} (cached 5min)
  *
  * Compatible: MySQL, MariaDB, PostgreSQL (timestamps passed as parameters).
@@ -44,6 +43,10 @@
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace local_su_statboard_api\external;
+
+use cache;
+use context_system;
 use core_external\external_api;
 use core_external\external_function_parameters;
 use core_external\external_multiple_structure;
@@ -51,14 +54,15 @@ use core_external\external_single_structure;
 use core_external\external_value;
 
 /**
- * External class for the local_su_statboard_api plugin.
+ * External service implementation for the Statboard stats endpoint.
  */
-class local_su_statboard_api_external extends external_api {
+class get_statboard_stats extends external_api {
     /**
-     * Define parameters for the get_statboard_stats function.
+     * Define parameters for the external function.
+     *
      * @return external_function_parameters
      */
-    public static function get_statboard_stats_parameters() {
+    public static function execute_parameters(): external_function_parameters {
         return new external_function_parameters(
             [
                 'date' => new external_value(PARAM_INT, 'Timestamp of the day (0 for today)', VALUE_DEFAULT, 0),
@@ -67,17 +71,17 @@ class local_su_statboard_api_external extends external_api {
     }
 
     /**
-     * Returns dashboard statistics with MUC cache for non-real-time metrics.
+     * Return the dashboard statistics with MUC cache for non-real-time metrics.
      *
      * @param int $date Timestamp of the day to analyze (0 for today).
      * @return array
      */
-    public static function get_statboard_stats($date = 0) {
+    public static function execute(int $date = 0): array {
         global $DB, $CFG;
 
         // Parameter validation.
         $params = self::validate_parameters(
-            self::get_statboard_stats_parameters(),
+            self::execute_parameters(),
             ['date' => $date]
         );
 
@@ -91,9 +95,6 @@ class local_su_statboard_api_external extends external_api {
         self::validate_context($context);
         require_capability('local/su_statboard_api:view', $context);
 
-        // Include compatibility functions for cross-DB date/hour formatting.
-        require_once($CFG->dirroot . '/local/su_statboard_api/locallib.php');
-
         // If date is not provided, use today.
         if (empty($params['date'])) {
             $today = time();
@@ -105,18 +106,18 @@ class local_su_statboard_api_external extends external_api {
 
         // Prepare response.
         $result = [];
-        // Cache instances — defined once here and reused below for each metric group.
+        // Cache instances - defined once here and reused below for each metric group.
         $cachetotals = cache::make('local_su_statboard_api', 'statboard_totals');
         $cachemax    = cache::make('local_su_statboard_api', 'statboard_max');
         $cachequiz   = cache::make('local_su_statboard_api', 'statboard_quiz');
-        // 1. Total active users — cached 1 hour.
+        // 1. Total active users - cached 1 hour.
         $totalusers = $cachetotals->get('total_users');
         if ($totalusers === false) {
             $totalusers = $DB->count_records_select('user', 'deleted = 0 AND suspended = 0');
             $cachetotals->set('total_users', $totalusers);
         }
         $result['total_users'] = $totalusers;
-        // 2. Total courses — cached 1 hour.
+        // 2. Total courses - cached 1 hour.
         $totalcourses = $cachetotals->get('total_courses');
         if ($totalcourses === false) {
             $totalcourses = $DB->count_records_select('course', 'id > 1');
@@ -124,8 +125,8 @@ class local_su_statboard_api_external extends external_api {
         }
         $result['total_courses'] = $totalcourses;
         /*
-         * 3. Users currently online — NOT cached, always real-time.
-         *    Source   : {user}.lastaccess — single table, uses existing index.
+         * 3. Users currently online - NOT cached, always real-time.
+         *    Source   : {user}.lastaccess - single table, uses existing index.
          *    Filter   : excludes technical accounts via auth method (webservice, nologin).
          *    Window   : last 5 minutes.
          *    Portable : timestamps passed as named parameters (no UNIX_TIMESTAMP()).
@@ -147,16 +148,16 @@ class local_su_statboard_api_external extends external_api {
         );
         /*
          * 4. Max daily connections over the last 30 days.
-         *    Source (J-1 to J-30) : {local_su_statboard_api_day} summary table — instant read.
-         *    Source (today)       : {user}.lastaccess — counts active users today.
+         *    Source (J-1 to J-30) : {local_su_statboard_api_day} summary table - instant read.
+         *    Source (today)       : {user}.lastaccess - counts active users today.
          *    Today is cached 15min; summary table is always read fresh (already aggregated).
-         *    Note: queries {user} (max ~50k rows) instead of {logstore_standard_log}
+         *    Note: queries {user} (max 50k rows) instead of {logstore_standard_log}
          *    (potentially 100M+ rows) per the reviewer's recommendation to avoid runtime
          *    scans of the logstore. Semantically, "today's count" now means "distinct
-         *    users active today" (rather than "logged in today") — a more accurate proxy
+         *    users active today" (rather than "logged in today") - a more accurate proxy
          *    for current usage that includes ongoing sessions.
          */
-        $maxcachekey  = 'max_today_' . date('Ymd', $startofday); // Date as digits only — MUC simple keys forbid hyphens.
+        $maxcachekey  = 'max_today_' . date('Ymd', $startofday); // Date as digits only - MUC simple keys forbid hyphens.
         $todaylogins  = $cachemax->get($maxcachekey);
 
         if ($todaylogins === false) {
@@ -178,7 +179,7 @@ class local_su_statboard_api_external extends external_api {
             $cachemax->set($maxcachekey, $todaylogins);
         }
 
-        // Read past days from the summary table (instant — max 30 rows).
+        // Read past days from the summary table (instant - max 30 rows).
         $pastdays = $DB->get_records('local_su_statboard_api_day', null, 'statsdate DESC', 'statsdate, logins');
 
         // Find the maximum across past days + today.
@@ -194,8 +195,8 @@ class local_su_statboard_api_external extends external_api {
         $result['max_connections'] = $maxconnections;
         /*
          * 5. Hourly connected users for the current day.
-         *    Source : {local_su_statboard_api_hour} — pre-calculated by cron every 5min.
-         *    Instant read — max 24 rows.
+         *    Source : {local_su_statboard_api_hour} - pre-calculated by cron every 5min.
+         *    Instant read - max 24 rows.
          *    Falls back to 0 for hours not yet calculated by the cron.
          *    For today: show hours 0 to current hour.
          *    For past dates: show all 24 hours (complete day).
@@ -217,7 +218,7 @@ class local_su_statboard_api_external extends external_api {
             $hourlylookup[(int)$row->hour] = (int)$row->connections;
         }
 
-        // Build the response array — initialize all hours to 0 up to current hour.
+        // Build the response array - initialize all hours to 0 up to current hour.
         $hourlyconnections = [];
         for ($hour = 0; $hour <= $currenthour; $hour++) {
             $hourlyconnections[] = [
@@ -228,13 +229,13 @@ class local_su_statboard_api_external extends external_api {
 
         $result['hourly_connections'] = $hourlyconnections;
         /*
-         * 6. Quiz completed today — cached 5 minutes.
-         *    Source   : {quiz_attempts} — lightweight COUNT on a well-indexed table.
+         * 6. Quiz completed today - cached 5 minutes.
+         *    Source   : {quiz_attempts} - lightweight COUNT on a well-indexed table.
          *    Filter   : state = 'finished', timestart >= start of today.
          *    Portable : startofday passed as named parameter (no UNIX_TIMESTAMP()).
          *    Cache key includes the day so it resets automatically at midnight.
          */
-        $quizcachekey       = 'quiz_completed_' . date('Ymd', $startofday); // Date as digits only — MUC simple keys forbid hyphens.
+        $quizcachekey       = 'quiz_completed_' . date('Ymd', $startofday); // Date as digits only - MUC simple keys forbid hyphens.
         $quizcompletedtoday = $cachequiz->get($quizcachekey);
 
         if ($quizcompletedtoday === false) {
@@ -264,10 +265,11 @@ class local_su_statboard_api_external extends external_api {
     }
 
     /**
-     * Define the return type for the get_statboard_stats function.
+     * Define the return type for the external function.
+     *
      * @return external_single_structure
      */
-    public static function get_statboard_stats_returns() {
+    public static function execute_returns(): external_single_structure {
         return new external_single_structure(
             [
                 'total_users'    => new external_value(PARAM_INT, 'Total number of active users'),

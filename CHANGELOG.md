@@ -5,6 +5,29 @@ All notable changes to the **`local_su_statboard_api`** plugin are documented in
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] — 2026-06-26
+
+### Changed
+
+- **Issue #4 (HIGH)**: live `max_connections` (today's count) no longer queries
+  `{logstore_standard_log}`. It now reads `{user}.lastaccess` (≤ 50k rows,
+  indexed), consistent with the existing `users_online_now` pattern. Zero
+  runtime queries on the logstore from the API endpoint.
+- **Issue #4 (HIGH)**: hourly aggregation cron switched from
+  `eventname NOT LIKE '%webservice%'` to an exact
+  `eventname = '\core\event\user_loggedin'` filter (indexed), for
+  consistency with the daily cron and faster execution.
+- **Issue #7 (LOW)**: external service implementation moved from legacy
+  `externallib.php` to the modern namespaced
+  `classes/external/get_statboard_stats.php`
+  (`\local_su_statboard_api\external\get_statboard_stats::execute()`).
+  The web service function name remains
+  `local_su_statboard_api_get_statboard_stats` — no client change required.
+
+### Removed
+
+- `externallib.php` (replaced by the namespaced class above).
+
 ## [1.0.3] — 2026-06-17
 
 ### Changed (breaking)
@@ -79,6 +102,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Requires Moodle 4.1 or later (`2022112800+`).
 
+[1.0.4]: https://github.com/dev-capsule/moodle-local_su_statboard_api/releases/tag/v1.0.4
 [1.0.3]: https://github.com/dev-capsule/moodle-local_su_statboard_api/releases/tag/v1.0.3
 [1.0.2]: https://github.com/dev-capsule/moodle-local_su_statboard_api/releases/tag/v1.0.2
 [1.0.0]: https://github.com/dev-capsule/moodle-local_su_statboard_api/releases/tag/v1.0.0

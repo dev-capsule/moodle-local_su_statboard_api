@@ -28,8 +28,8 @@ defined('MOODLE_INTERNAL') || die();
 
 $functions = [
     'local_su_statboard_api_get_statboard_stats' => [
-        'classname'     => 'local_su_statboard_api_external',
-        'methodname'    => 'get_statboard_stats',
+        'classname'     => 'local_su_statboard_api\external\get_statboard_stats',
+        'methodname'    => 'execute',
         'description'   => 'Get comprehensive dashboard statistics for Moodle instance',
         'type'          => 'read',
         'ajax'          => true,

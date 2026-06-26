@@ -96,7 +96,8 @@ local/su_statboard_api/
 ├── templates/
 │   ├── token_settings.mustache       # UI gestion du token
 │   └── view_token.mustache           # UI consultation du token
-├── externallib.php                   # Implémentation de get_statboard_stats()
+├── classes/external/
+│   └── get_statboard_stats.php     # Implémentation du service web (emplacement moderne namespacé)
 ├── locallib.php                      # Helpers tokens + SQL portables
 ├── settings.php                      # Page de configuration plugin
 ├── token_settings.php                # Contrôleur gestion token
@@ -170,7 +171,7 @@ Un service web unique est créé à l'installation :
 
 `local_su_statboard_api_get_statboard_stats`
 
-Implémentation : `local_su_statboard_api_external::get_statboard_stats()` dans `externallib.php`.
+Implémentation : `\local_su_statboard_api\external\get_statboard_stats::execute()` dans `classes/external/get_statboard_stats.php`.
 
 #### Paramètres
 
@@ -392,16 +393,16 @@ Chaque fichier `lang/<code>/local_su_statboard_api.php` couvre l'ensemble des ch
 
 ### Ajouter une métrique à `get_statboard_stats`
 
-1. Ajouter la requête (idéalement avec cache MUC) dans `externallib.php::get_statboard_stats()`.
+1. Ajouter la requête (idéalement avec cache MUC) dans `classes/external/get_statboard_stats.php::execute()`.
 2. Si la métrique mérite un nouveau store, déclarer une définition dans `db/caches.php` avec un TTL approprié et ajouter la chaîne `cachedef_<nom>` dans tous les fichiers de langue.
-3. Compléter `get_statboard_stats_returns()` avec la structure de retour.
+3. Compléter `execute_returns()` avec la structure de retour.
 4. Si la requête doit s'exécuter sur des volumes importants, envisager une table résumé alimentée par cron sur le modèle de `local_su_statboard_api_day`.
 5. Tester sur PostgreSQL **et** sur MySQL/MariaDB.
 
 ### Ajouter une nouvelle fonction au service
 
 ```php
-// classes ou externallib.php
+// classes/external/
 public static function get_course_stats_parameters() {
     return new external_function_parameters([
         'courseid' => new external_value(PARAM_INT, 'Course ID'),
@@ -420,8 +421,8 @@ public static function get_course_stats_returns() {
 ```php
 // db/services.php
 'local_su_statboard_api_get_course_stats' => [
-    'classname'    => 'local_su_statboard_api_external',
-    'methodname'   => 'get_course_stats',
+    'classname'    => 'local_su_statboard_api\\external\\get_course_stats',
+    'methodname'   => 'execute',
     'description'  => 'Get course-specific statistics',
     'type'         => 'read',
     'ajax'         => true,
